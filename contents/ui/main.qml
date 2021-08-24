@@ -14,8 +14,8 @@ import org.kde.plasma.extras 2.0 as PlasmaExtras
 Item {
 
     // Initial size of the window in gridUnits
-    width: PlasmaCore.Units.gridUnit * 28
-    height: PlasmaCore.Units.gridUnit * 20
+    width: units.gridUnit * 28
+    height: units.gridUnit * 20
 
     // We use a ColumnLayout to position and size the individual items
     ColumnLayout {
@@ -23,10 +23,10 @@ Item {
         // Our ColumnLayout is fills the parent item with a bit of margin
         anchors {
             fill: parent
-            margins: PlasmaCore.Units.largeSpacing
+            margins: units.largeSpacing
         }
 
-        spacing: PlasmaCore.Units.gridUnit
+        spacing: units.gridUnit
 
         // A title on top
         PlasmaExtras.Heading {
@@ -71,7 +71,7 @@ Item {
     PlasmaCore.IconItem {
 
         // We use an anchor layout and dpi-corrected sizing
-        width: PlasmaCore.Units.iconSizes.large * 4
+        width: units.iconSizes.large * 4
         height: width
         anchors {
             left: parent.left
