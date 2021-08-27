@@ -79,10 +79,8 @@ Item {
     }
 
     function findTask(name) {
-        console.log("findTask", name);
         for(var ix = 0; ix < tasksModel.count; ix += 1) {
             var task = tasksModel.get(ix)
-            console.log("check task",ix, task.name);
             if (task.name == name)
                 return ix
         }
@@ -127,6 +125,8 @@ Item {
     }
 
     function addTask(name) {
+        if (findTask(name) !== undefined)
+            return // don't duplicate
         taskIndex = tasksModel.count
         tasksModel.append({
             name: name,
@@ -488,54 +488,55 @@ Item {
                     property int taskItemHeight: 10
 	                id: taskList
 	                width: parent.width
-	                spacing: 0 //margin
-//                    height: childrenRect.height 
-//	                height: model.count * (taskItemHeight)//(taskItemHeight + spacing)
+	                spacing: 0 
 	                interactive: true
                     clip: true
-//                    Layout.alignment: Qt.AlignVCenter
                     anchors.fill: parent
-                    //                    anchors.bottom: parent.bottom
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 	                model: tasksModel
                     QtControls.ScrollBar.vertical: QtControls.ScrollBar {}
-	                onModelChanged: {
-//		                taskList.height = taskList.model.count * (taskItemHeight + spacing)
-	                }
                     
 	                delegate: MouseArea {
                         height: childrenRect.height
                         width: parent.width
-                        //                        Layout.fillWidth: true
-  //                      Layout.fillHeight: true
-                        onClicked: {
-                            start(taskItemName.text);
+                        property bool isSelected: (getTask() || {}).name == name
+                        property bool isActive: isSelected && clockTimer.running
+                        property var textColor: isSelected ? "red" : "white"
+                        onClicked: toggle()
+                        
+                        function toggle() {
+                            if (isActive)
+                                stop(name)
+                            else
+                                start(name)
                         }
+                        
                         RowLayout {
 		                    id: taskItem
 		                    width: parent.width-20
-		                    //height: taskList.height 
-                            //		                radius: 10
 		                    anchors.horizontalCenter: parent.horizontalCenter
-                            //border.color: "orange"
-		                    //color: "#0f0"
-                            
+
+                            PlasmaComponents.Button {
+                                implicitWidth: minimumWidth
+                                iconSource: isActive? "media-playback-stop" : "media-playback-start"
+                                Layout.alignment: Qt.AlignLeft
+                                onClicked: toggle()
+                            }
                         	Text {
 				                id: taskItemName
 				                text: name
-				                //anchors.centerIn: parent
+                                Layout.fillWidth: true
                                 Layout.alignment: Qt.AlignLeft
 				                font.pixelSize: 14
-				                color: "white"
+				                color: textColor
 			                }
 			                Text {
 				                id: taskItemDuration
 				                text: formatDuration(duration)
-				                //anchors.centerIn: parent
                                 Layout.alignment: Qt.AlignRight
 				                font.pixelSize: 14
-				                color: "red"
+				                color: textColor
 			                }
                         }
 		            }
@@ -547,6 +548,13 @@ Item {
                 width: parent.width 
                 anchors {
                     bottom: parent.bottom
+                }
+                
+                function newTask() {
+                    if (taskInput.text.match(/^ *$/))
+                        return
+                    addTask(taskInput.text)
+                    taskInput.clear()
                 }
                 
                 // Background box
@@ -565,11 +573,16 @@ Item {
                     color: "white"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+                    Layout.margins: 5
+                    onAccepted: parent.newTask()
+                }
 
-                    onAccepted: {
-                        addTask(text)
-                        taskInput.clear()
-                    }
+                PlasmaComponents.Button {
+                    implicitWidth: minimumWidth
+                    text: "New Task"
+                    Layout.alignment: Qt.AlignRight
+                    Layout.margins: 5
+                    onClicked: parent.newTask()
                 }
             }
         }
