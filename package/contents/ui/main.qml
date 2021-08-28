@@ -15,7 +15,7 @@ Item {
     property var startIconSource: plasmoid.file("", "icons/start-light.svg")
     property string clock_fontfamily: plasmoid.configuration.clock_fontfamily || "Noto Mono"
     property var taskSeconds: 0
-    property var taskIndex: null
+    property var taskIndex: undefined
     property var timeText: formatDuration(taskSeconds)
     property var taskLog: "~/tasks.log"
 
@@ -32,6 +32,7 @@ Item {
     Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
     Plasmoid.status: PlasmaCore.Types.PassiveStatus
     Plasmoid.backgroundHints: PlasmaCore.Types.DefaultBackground | PlasmaCore.Types.ConfigurableBackground
+    Plasmoid.toolTipMainText: formatToolTipMainText()
 
     Timer {
         id: clockTimer
@@ -40,6 +41,13 @@ Item {
         running: false
         triggeredOnStart: false
         onTriggered: secondTick()
+    }
+
+    function formatToolTipMainText() {
+        var task = selectedTask()
+        if (task)
+            return task.name + ': ' + timeText + (clockTimer.running? '' : ' (paused)')
+        return 'No task currently' 
     }
 
     function formatDuration(seconds) {
@@ -60,7 +68,7 @@ Item {
     }
     
     function secondTick() {
-        var task = getTask()
+        var task = selectedTask()
         if (!task)
             return
         console.log("tick! "+formatDuration(taskSeconds))
@@ -71,7 +79,7 @@ Item {
     }
 
     // Get current task set by taskIndex
-    function getTask() {
+    function selectedTask() {
         if (taskIndex >= 0 && taskIndex < tasksModel.count) {
             return tasksModel.get(taskIndex)
         }
@@ -86,9 +94,25 @@ Item {
         }
         return undefined
     }
+
+    function isSelectedTask(name) {
+        var task = selectedTask()
+        if (task)
+            return task.name == name
+        else
+            return false 
+    }
+
+    function isActiveTask(name) {
+        return clockTimer.running && isSelectedTask(name)
+    }
+
+    function activeTask() {
+        return clockTimer.running? selectedTask() : undefined
+    }
     
     function start(taskName) {
-        var task;
+        var task
         if (taskName) {
             var ix = findTask(taskName)
             if (ix === undefined) {
@@ -98,7 +122,7 @@ Item {
             taskIndex = ix
         }
 
-        task = getTask()
+        task = selectedTask()
         if (!task) {
             console.warn("can't start, no task set");
             return
@@ -111,7 +135,7 @@ Item {
 
     function pause() {
         clockTimer.stop()
-        var task = getTask()
+        var task = selectedTask()
         if (task)
             executable.logTask('stop', task.name.replace(/\t/g, ' '))
     }
@@ -119,7 +143,7 @@ Item {
     function stop() {
         clockTimer.stop()
         taskSeconds = 0
-        var task = getTask()
+        var task = selectedTask()
         if (task)
             executable.logTask('stop', task.name.replace(/\t/g, ' '))
     }
@@ -500,8 +524,8 @@ Item {
 	                delegate: MouseArea {
                         height: childrenRect.height
                         width: parent.width
-                        property bool isSelected: (getTask() || {}).name == name
-                        property bool isActive: isSelected && clockTimer.running
+                        property bool isSelected: taskIndex === index
+                        property bool isActive: clockTimer.running && taskIndex === index
                         property var textColor: isSelected ? "red" : "white"
                         onClicked: toggle()
                         
