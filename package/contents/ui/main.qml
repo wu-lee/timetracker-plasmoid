@@ -142,7 +142,7 @@ Item {
         clockTimer.stop()
         var task = selectedTask()
         if (task)
-            executable.logTask('stop', task.name.replace(/\t/g, ' '))
+            executable.logTask('stop', task.name)
     }
 
     function stop() {
@@ -150,7 +150,7 @@ Item {
         taskSeconds = 0
         var task = selectedTask()
         if (task)
-            executable.logTask('stop', task.name.replace(/\t/g, ' '))
+            executable.logTask('stop', task.name)
     }
 
     function getIdleTime() {
@@ -334,6 +334,13 @@ Item {
             return str.replace(/([*?\[\]'"\\$;&()|^<>\n\t\ ])/g, '\\$1');
         }
 
+        // Utility for escaping tab and other special characters for TSV data fields
+        function qt(str) {
+            return str
+                .replace(/\t/g, '\\t')
+                .replace(/\n/g, '\\n')
+        }
+
         // Commands
         function initTasks() {
             var taskLogQuoted = sq(taskLog)
@@ -351,9 +358,9 @@ Item {
             var taskLogQuoted = sq(taskLog)
             var cmd = [
                 'printf "%s\\t%s\\t%s\\n"',
-                q(date),
-                q(state),
-                q(name),
+                q(qt(date)),
+                q(qt(state)),
+                q(qt(name)),
                 '>> ', taskLogQuoted,
                 '&& cat ', taskLogQuoted
             ].join(' ')
