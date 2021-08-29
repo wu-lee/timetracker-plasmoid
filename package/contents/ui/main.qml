@@ -13,6 +13,7 @@ Item {
     id: root
 
     property var startIconSource: plasmoid.file("", "icons/start-light.svg")
+    property int idleThresholdMins: 5
     property string clock_fontfamily: plasmoid.configuration.clock_fontfamily || "Noto Mono"
     property var taskSeconds: 0
     property var taskIndex: undefined
@@ -76,6 +77,10 @@ Item {
         timeText = formatDuration(taskSeconds)
         task.duration = taskSeconds
         tasksModel.set(taskIndex, task)
+
+        if (clockTimer.running && taskSeconds % 60 == 0) {
+            getIdleTime(); // will check the idle time and stop the clock if it is too long
+        }
     }
 
     // Get current task set by taskIndex
@@ -146,6 +151,10 @@ Item {
         var task = selectedTask()
         if (task)
             executable.logTask('stop', task.name.replace(/\t/g, ' '))
+    }
+
+    function getIdleTime() {
+        executable.pollIdle()
     }
 
     function addTask(name) {
@@ -286,7 +295,10 @@ Item {
             //            console.log(sourceName);
 
             // Detect which command ran and send the exited notification accordingly.
-            if (sourceName.substr(0,3) == 'cat') {
+            if (sourceName.substr(0,5) == 'qdbus') {
+			    exited('pollIdle', exitCode, exitStatus, stdout, stderr)
+            }
+            else if (sourceName.substr(0,3) == 'cat') {
 			    exited('loadTasks', exitCode, exitStatus, stdout, stderr)
             }
             else if (sourceName.substr(0,6) == 'printf') {
@@ -348,6 +360,10 @@ Item {
 			connectSource(cmd)
 		}
 
+        function pollIdle() {
+			connectSource('qdbus org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.GetSessionIdleTime')
+        }
+
         // Define the edited signal
 		signal exited(string cmdId, int exitCode, int exitStatus, string stdout, string stderr)
 	}
@@ -366,6 +382,17 @@ Item {
                         name: task[0],
                         duration: task[1]
                     }));
+                    break
+                case 'pollIdle':
+                    if (!clockTimer.running)
+                        break
+                    var millis = parseInt(stdout, 10)
+                    if (millis / 60000 > idleThresholdMins) {
+                        stop()
+                    }
+                    break
+                default:
+                    console.warn('ignoring unknown command id', cmdId);
                     break
                 }
 				//console.debug('[commandoutput]', cmdId, 'stdout', stdout)
