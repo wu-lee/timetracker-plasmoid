@@ -34,6 +34,7 @@ Item {
     Plasmoid.status: PlasmaCore.Types.PassiveStatus
     Plasmoid.backgroundHints: PlasmaCore.Types.DefaultBackground | PlasmaCore.Types.ConfigurableBackground
     Plasmoid.toolTipMainText: formatToolTipMainText()
+    Plasmoid.toolTipSubText: "Time tracker plasmoid v0.1"
 
     Timer {
         id: clockTimer
