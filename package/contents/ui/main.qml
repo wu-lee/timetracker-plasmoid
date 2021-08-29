@@ -174,7 +174,7 @@ Item {
         
         eventList.split('\n').map(parseLine).forEach(aggregate)
             
-        console.log('debug'+JSON.stringify(index, null, '  '))
+        //console.log('debug'+JSON.stringify(index, null, '  '))
         return index;
 
         // Local function definitions.
