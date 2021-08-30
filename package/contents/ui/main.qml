@@ -27,9 +27,6 @@ Item {
     Plasmoid.switchWidth: units.gridUnit * 11
     Plasmoid.switchHeight: units.gridUnit * 11
 
-    //    Plasmoid.expanded: mouseArea.containsMouse
-
-    
     Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
     Plasmoid.status: PlasmaCore.Types.PassiveStatus
     Plasmoid.backgroundHints: PlasmaCore.Types.DefaultBackground | PlasmaCore.Types.ConfigurableBackground
