@@ -133,7 +133,7 @@ Item {
             console.warn("can't start, no task set");
             return
         }
-            
+        
         taskSeconds = task.duration // FIXME duration needs to be set correctly
         clockTimer.start()
         executable.logTask('start', task.name)
@@ -174,7 +174,7 @@ Item {
         var currentTask // tracks the state of the worker whilst aggregating the log entries
         
         eventList.split('\n').map(parseLine).forEach(aggregate)
-            
+        
         //console.log('debug'+JSON.stringify(index, null, '  '))
         return index;
 
@@ -277,30 +277,30 @@ Item {
     }
     
     // From https://github.com/Zren/plasma-applet-commandoutput/blob/master/package/contents/ui/main.qml
-	// https://github.com/KDE/plasma-workspace/blob/master/dataengines/executable/executable.h
-	// https://github.com/KDE/plasma-workspace/blob/master/dataengines/executable/executable.cpp
-	// https://github.com/KDE/plasma-framework/blob/master/src/declarativeimports/core/datasource.h
-	// https://github.com/KDE/plasma-framework/blob/master/src/declarativeimports/core/datasource.cpp
-	// https://github.com/KDE/plasma-framework/blob/master/src/plasma/scripting/dataenginescript.cpp
-	PlasmaCore.DataSource {
-		id: executable
-		engine: "executable"
-		connectedSources: []
+    // https://github.com/KDE/plasma-workspace/blob/master/dataengines/executable/executable.h
+    // https://github.com/KDE/plasma-workspace/blob/master/dataengines/executable/executable.cpp
+    // https://github.com/KDE/plasma-framework/blob/master/src/declarativeimports/core/datasource.h
+    // https://github.com/KDE/plasma-framework/blob/master/src/declarativeimports/core/datasource.cpp
+    // https://github.com/KDE/plasma-framework/blob/master/src/plasma/scripting/dataenginescript.cpp
+    PlasmaCore.DataSource {
+        id: executable
+        engine: "executable"
+        connectedSources: []
 
         // Captures data from commands
-		onNewData: {
-			var exitCode = data["exit code"]
-			var exitStatus = data["exit status"]
-			var stdout = data["stdout"]
-			var stderr = data["stderr"]
+        onNewData: {
+            var exitCode = data["exit code"]
+            var exitStatus = data["exit status"]
+            var stdout = data["stdout"]
+            var stderr = data["stderr"]
             //            console.log(sourceName);
 
             // Detect which command ran and send the exited notification accordingly.
             if (sourceName.substr(0,5) == 'qdbus') {
-			    exited('pollIdle', exitCode, exitStatus, stdout, stderr)
+                exited('pollIdle', exitCode, exitStatus, stdout, stderr)
             }
             else if (sourceName.substr(0,3) == 'cat') {
-			    exited('loadTasks', exitCode, exitStatus, stdout, stderr)
+                exited('loadTasks', exitCode, exitStatus, stdout, stderr)
             }
             else if (sourceName.substr(0,6) == 'printf') {
                 exited('logTask', exitCode, exitStatus, stdout, stderr)
@@ -314,8 +314,8 @@ Item {
                               "\nstdout", stdout,
                               "\nstderr", stderr)
             }
-			disconnectSource(sourceName) // cmd finished
-		}
+            disconnectSource(sourceName) // cmd finished
+        }
 
         // Utility for escaping and single-quoting and escaping strings for the command line.
         // This means that no interpolation, tilde expansion etc. occurs.
@@ -345,16 +345,16 @@ Item {
         // Commands
         function initTasks() {
             var taskLogQuoted = sq(taskLog)
-			connectSource('mkdir -p $(dirname '+taskLogQuoted+') && touch '+taskLogQuoted+' && cat '+taskLogQuoted);
+            connectSource('mkdir -p $(dirname '+taskLogQuoted+') && touch '+taskLogQuoted+' && cat '+taskLogQuoted);
         }
 
         // Lists all tasks in the task log
-		function loadTasks() {
-			connectSource('cat '+sq(taskLog));
-		}
+        function loadTasks() {
+            connectSource('cat '+sq(taskLog));
+        }
 
         // Logs a new task status change, and re-list the task log
-		function logTask(state, name) {
+        function logTask(state, name) {
             var date = new Date().toJSON()
             var taskLogQuoted = sq(taskLog)
             var cmd = [
@@ -365,21 +365,21 @@ Item {
                 '>> ', taskLogQuoted,
                 '&& cat ', taskLogQuoted
             ].join(' ')
-			connectSource(cmd)
-		}
-
+            connectSource(cmd)
+        }
+        
         function pollIdle() {
-			connectSource('qdbus org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.GetSessionIdleTime')
+            connectSource('qdbus org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.GetSessionIdleTime')
         }
 
         // Define the edited signal
-		signal exited(string cmdId, int exitCode, int exitStatus, string stdout, string stderr)
-	}
+        signal exited(string cmdId, int exitCode, int exitStatus, string stdout, string stderr)
+    }
 
     Connections {
-		target: executable
-		onExited: {
-			if (exitCode == 0) {
+        target: executable
+        onExited: {
+            if (exitCode == 0) {
                 switch(cmdId) {
                 case 'initTasks':
                 case 'logTask':
@@ -403,12 +403,12 @@ Item {
                     console.warn('ignoring unknown command id', cmdId);
                     break
                 }
-				//console.debug('[commandoutput]', cmdId, 'stdout', stdout)
-			}
+                //console.debug('[commandoutput]', cmdId, 'stdout', stdout)
+            }
             else {
                 console.debug('[commandoutput]', cmdId, exitCode, 'stderr', stderr)
             }
-		}
+        }
     }
 
     // On start, initialise the log (e.g. ensure the log's directory exists)
@@ -425,7 +425,7 @@ Item {
         //            Layout.preferredWidth: row.width //plasmoid.configuration.show_time_in_compact_mode ? row.width : root.width
         
         property int wheelDelta: 0
-            
+        
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
         
         onClicked: {
@@ -459,7 +459,7 @@ Item {
             id: row
             spacing: units.smallSpacing
             Layout.margins: units.smallSpacing
-//            visible: plasmoid.configuration.show_time_in_compact_mode ? true : false
+            //            visible: plasmoid.configuration.show_time_in_compact_mode ? true : false
 
             width: parent.width
             height: parent.height
@@ -478,12 +478,12 @@ Item {
                     source: startIconSource
                     smooth: true
                     /*
-                    layer {
-                        enabled: true
-                        effect: ColorOverlay {
-                            color: "#0f0"
-                        }
-                    }*/
+                      layer {
+                      enabled: true
+                      effect: ColorOverlay {
+                      color: "#0f0"
+                      }
+                      }*/
                 }
             }
 
@@ -497,7 +497,7 @@ Item {
                 text: timeText
                 minimumPixelSize: 1
                 Layout.alignment: Qt.AlignVCenter
-//                color: getTextColor()
+                //                color: getTextColor()
                 smooth: true
             }
         }
@@ -535,7 +535,7 @@ Item {
                 id: taskListRect
                 color: "transparent"
                 width: parent.width
-//                height: parent.height
+                //                height: parent.height
                 anchors {
                     top: parent.top
                     bottom: taskInputRow.top
@@ -545,18 +545,18 @@ Item {
                 ListView {
                     property int margin: 50
                     property int taskItemHeight: 10
-	                id: taskList
-	                width: parent.width
-	                spacing: 0 
-	                interactive: true
+                    id: taskList
+                    width: parent.width
+                    spacing: 0 
+                    interactive: true
                     clip: true
                     anchors.fill: parent
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-	                model: tasksModel
+                    model: tasksModel
                     QtControls.ScrollBar.vertical: QtControls.ScrollBar {}
                     
-	                delegate: MouseArea {
+                    delegate: MouseArea {
                         height: childrenRect.height
                         width: parent.width
                         property bool isSelected: taskIndex === index
@@ -572,9 +572,9 @@ Item {
                         }
                         
                         RowLayout {
-		                    id: taskItem
-		                    width: parent.width-20
-		                    anchors.horizontalCenter: parent.horizontalCenter
+                            id: taskItem
+                            width: parent.width-20
+                            anchors.horizontalCenter: parent.horizontalCenter
 
                             PlasmaComponents.Button {
                                 implicitWidth: minimumWidth
@@ -582,23 +582,23 @@ Item {
                                 Layout.alignment: Qt.AlignLeft
                                 onClicked: toggle()
                             }
-                        	Text {
-				                id: taskItemName
-				                text: name
+                            Text {
+                                id: taskItemName
+                                text: name
                                 Layout.fillWidth: true
                                 Layout.alignment: Qt.AlignLeft
-				                font.pixelSize: 14
-				                color: textColor
-			                }
-			                Text {
-				                id: taskItemDuration
-				                text: formatDuration(duration)
+                                font.pixelSize: 14
+                                color: textColor
+                            }
+                            Text {
+                                id: taskItemDuration
+                                text: formatDuration(duration)
                                 Layout.alignment: Qt.AlignRight
-				                font.pixelSize: 14
-				                color: textColor
-			                }
+                                font.pixelSize: 14
+                                color: textColor
+                            }
                         }
-		            }
+                    }
                 }
             }
 
@@ -624,7 +624,7 @@ Item {
                     width: parent.width
                     height: parent.height
                 }
-            
+                
                 TextInput {
                     id: taskInput
                     font.pixelSize: 24
