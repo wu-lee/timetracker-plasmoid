@@ -12,11 +12,14 @@ import org.kde.plasma.components 2.0 as PlasmaComponents
 Item {
     id: root
 
+    property int logSchemaVersion: 1
     property var startIconSource: plasmoid.file("", "icons/start-light.svg")
     property int idleThresholdMins: 5
+    property int markIntervalMins: 1
     property string clock_fontfamily: plasmoid.configuration.clock_fontfamily || "Noto Mono"
     property var taskSeconds: 0
     property var taskIndex: undefined
+    property var logPrevTime: undefined
     property var timeText: formatDuration(taskSeconds)
     property var taskLog: "~/tasks.log"
 
@@ -76,8 +79,13 @@ Item {
         task.duration = taskSeconds
         tasksModel.set(taskIndex, task)
 
-        if (clockTimer.running && taskSeconds % 60 == 0) {
-            getIdleTime(); // will check the idle time and stop the clock if it is too long
+        if (clockTimer.running) {
+            if (taskSeconds % 60 === 0) {
+                getIdleTime(); // will check the idle time and stop the clock if it is too long
+            }
+            if (taskSeconds % 60*markIntervalMins === 0) {
+                mark()
+            }
         }
     }
 
@@ -119,10 +127,13 @@ Item {
         if (taskName) {
             var ix = findTask(taskName)
             if (ix === undefined) {
-                console.warn("can't start, unknown task", taskName);
+                console.warn("can't start, unknown task", taskName)
                 return
             }
-            taskIndex = ix
+            if (taskIndex !== ix) {
+                taskIndex = ix
+                executable.logTask('switch', taskName)
+            }
         }
 
         task = selectedTask()
@@ -133,14 +144,27 @@ Item {
         
         taskSeconds = task.duration // FIXME duration needs to be set correctly
         clockTimer.start()
-        executable.logTask('start', task.name)
+        executable.logTask('start')
+    }
+        
+    function mark() {
+        var task = selectedTask()
+        if (!clockTimer.running) {
+            console.warn("can't mark, task not in progress", task.name)
+            return
+        }
+        if (task === undefined) {
+            console.warn("can't mark, no current task")
+            return
+        }
+        executable.logTask('mark')
     }
 
     function stop() {
         clockTimer.stop()
         var task = selectedTask()
         if (task)
-            executable.logTask('stop', task.name)
+            executable.logTask('stop')
     }
 
     function getIdleTime() {
@@ -155,12 +179,14 @@ Item {
             name: name,
             duration: 0,
         });
+        taskSeconds = 0
+        executable.logTask('switch', name)
     }
 
     function parseTasks(eventList) {
         var index = {}
-        var lastTime
-        var currentTask // tracks the state of the worker whilst aggregating the log entries
+        var prevTime
+        var currentTask // the name of the current task, if set
         
         eventList.split('\n').map(parseLine).forEach(aggregate)
         
@@ -169,17 +195,28 @@ Item {
 
         // Local function definitions.
         function parseLine(line, ix) {
+            // Skip whitespace
             if (line.match(/^[ ]*$/))
                 return
+            
             var components = line.split('\t')
-            if (components.length !== 3) {
-                console.debug("malformed log line "+ix+": "+line);
+            var expectedSchemaVersion = Number(logSchemaVersion).toString(16)
+            if (components[0] != expectedSchemaVersion) {
+                console.error('Unrecognised schema version',components[0],'.',
+                              '(Expected ',expectedSchemaVersion,')')
+                return
+            }
+            
+            // We assume the supported schema
+            if (components.length < 4) { // min length
+                console.debug('log line '+ix+' contains too few fields: '+line);
                 return;
             }
             return {
-                time: new Date(components[0]),
-                event: components[1],
-                name: components[2]
+                action: components[1],
+                prevTime: components[2],
+                time: components[3],
+                param: components[4],
             }
         }
         function aggregate(taskEntry) {
@@ -189,24 +226,39 @@ Item {
             //console.log(JSON.stringify(taskEntry))
 
             // Monitor the time sequence.
-            if (lastTime) {
-                if (lastTime > taskEntry.time)
-                    warn('log entry out of time sequence');
+            if (prevTime !== undefined) {
+                if (taskEntry.action != 'init' && prevTime !== taskEntry.prevTime) {
+                    warn('log entry mismatches previous entrys timestamp sequence - '+
+                         'probably corrupt! ('+ prevTime +' vs '+ taskEntry.prevTime +')')
+                }
             }
-            lastTime = taskEntry.time
+            if (new Date(taskEntry.time) < new Date(taskEntry.prevTime)) {
+                warn('log entry has a timestamp fields out of sequence')
+            }
+            prevTime = taskEntry.time
 
             // Manage the working state...
-            switch(taskEntry.event) {
+            console.debug(taskEntry.action, taskEntry.param)
+            switch(taskEntry.action) {
             case 'start':
                 startTask(taskEntry)
                 break
 
             case 'stop':
+            case 'mark':
                 stopTask(taskEntry);
                 break
                 
+            case 'switch':
+                switchTask(taskEntry)
+                break
+
+            case 'init':
+                initTask(taskEntry)
+                break
+                
             default:
-                warn('unknown event "'+taskEntry.event+'"')
+                warn('unknown action "'+taskEntry.action+'"')
                 break
             }        
 
@@ -214,49 +266,57 @@ Item {
 
             function warn(message) {
                 console.warn(message,
-                             "for",taskEntry.name,
+                             "for",taskEntry.action,
                              "at", taskEntry.time);
             }
-            function startTask(taskEntry) {
-                if (currentTask) {
-                    // We are working already!
-                    warn('unexpected start event, stopping old one first')
-                    stopTask(taskEntry);
-                }
-                // In any case, start the new one
-                currentTask = {
-                    name: taskEntry.name,
-                    started: taskEntry.time,
-                }
-                // Initialise an index entry
-                if (!index[currentTask.name])
-                    index[currentTask.name] = 0
-            }
-
-            function stopTask(taskEntry) {
+            function switchTask(taskEntry) {
+                if (!index[currentTask])
+                    index[currentTask] = 0
+                
                 if (currentTask) {
                     // We are working
 
-                    if (currentTask.name !== taskEntry.name) {
-                        warn('stop event for unexpected task, stopping current task anyway');
-                    }
-                    // Assume aggregator will catch events out of time sequence
-                    // so no check for that here.
+                    // Add on current task duration
+                    var startTime = new Date(taskEntry.prevTime)
+                    var stopTime = new Date(taskEntry.time)
+                    var milliseconds = stopTime.getTime() - startTime.getTime()
+                    index[currentTask] += Math.round(milliseconds/1000)
+                }
+                
+                currentTask = taskEntry.param
+                if (!index[currentTask])
+                    index[currentTask] = 0
+            }
+            function startTask(taskEntry) {
+                
+                // Assume aggregator will catch events out of time sequence
+                // so no check for that here.
+
+                if (!currentTask) {
+                    warn('unexpected start entry - no current task set')
+                }
+            }
+            function stopTask(taskEntry) {
+                // Assume aggregator will catch events out of time sequence
+                // so no check for that here.
+
+                if (currentTask) {
+                    // We are working
 
                     // Add on task duration
-                    var milliseconds = taskEntry.time.getTime() - currentTask.started.getTime();
-                    if (milliseconds < 0)
-                        warn('stop event before start event, ignoring')
-                    else
-                        index[currentTask.name] += Math.round(milliseconds/1000)
+                    var startTime = new Date(taskEntry.prevTime)
+                    var stopTime = new Date(taskEntry.time)
+                    var milliseconds = stopTime.getTime() - startTime.getTime()
+                    index[currentTask] += Math.round(milliseconds/1000)
                 }
                 else {
                     // We are not working!?
-                    warn('stop event when not working!')
+                    warn('stop/mask action without a current task set')
                 }
-
-                // In any case
-                currentTask = undefined
+            }
+            function initTask(taskEntry) {
+                // If we were working, discard state and start afresh
+                currentTask === undefined
             }
         }
     }
@@ -334,7 +394,11 @@ Item {
         // Commands
         function initTasks() {
             var taskLogQuoted = sq(taskLog)
-            connectSource('mkdir -p $(dirname '+taskLogQuoted+') && touch '+taskLogQuoted+' && cat '+taskLogQuoted);
+            logPrevTime = new Date().toJSON()
+            connectSource('mkdir -p $(dirname '+taskLogQuoted+') && '+
+                          'printf "'+logSchemaVersion.toString(16)+
+                          '\\tinit\\t\\t'+logPrevTime+'\\n" >>'+taskLogQuoted+' && '+
+                          'cat '+taskLogQuoted);
         }
 
         // Lists all tasks in the task log
@@ -343,17 +407,22 @@ Item {
         }
 
         // Logs a new task status change, and re-list the task log
-        function logTask(state, name) {
-            var date = new Date().toJSON()
+        function logTask(action, param) {
+            var timestamp = new Date().toJSON()
             var taskLogQuoted = sq(taskLog)
             var cmd = [
-                'printf "%s\\t%s\\t%s\\n"',
-                q(qt(date)),
-                q(qt(state)),
-                q(qt(name)),
+                'printf "%x\\t%s\\t%s\\t%s\\t%s\\n"',
+                logSchemaVersion,
+                q(qt(action)),
+                q(qt(logPrevTime||'')),
+                q(qt(timestamp)),
+                q(qt(param||'')),
                 '>> ', taskLogQuoted,
                 '&& cat ', taskLogQuoted
             ].join(' ')
+            logPrevTime = timestamp
+
+            console.debug('>>', cmd);
             connectSource(cmd)
         }
         
@@ -383,6 +452,7 @@ Item {
                 case 'pollIdle':
                     if (!clockTimer.running)
                         break
+                    var task = selectedTask()
                     var millis = parseInt(stdout, 10)
                     if (millis / 60000 > idleThresholdMins) {
                         stop()
