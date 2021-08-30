@@ -73,7 +73,7 @@ Item {
         var task = selectedTask()
         if (!task)
             return
-        console.log("tick! "+formatDuration(taskSeconds))
+        //console.debug("tick! "+formatDuration(taskSeconds))
         taskSeconds += 1
         timeText = formatDuration(taskSeconds)
         task.duration = taskSeconds
