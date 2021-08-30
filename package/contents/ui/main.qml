@@ -309,24 +309,24 @@ Item {
         // Utility for escaping and single-quoting and escaping strings for the command line.
         // This means that no interpolation, tilde expansion etc. occurs.
         function q(str) {
-            return "'"+str.replace(/'/g, "'\"'\"'")+"'";
+            return "'"+(str||'').replace(/'/g, "'\"'\"'")+"'";
         }
 
         // Utility for escaping and double-quoting and escaping strings for the command line.
         // This means that interpolation, but no tilde expansion etc. occurs.
         function qq(str) {
-            return '"'+str.replace(/"/g, "\\\"")+'"';
+            return '"'+(str||'').replace(/"/g, "\\\"")+'"';
         }
 
         // Utility for escaping shell metacharacters in strings for the command line.
         // This means that interpolation, tilde expansion etc. will occur.
         function sq(str) {
-            return str.replace(/([*?\[\]'"\\$;&()|^<>\n\t\ ])/g, '\\$1');
+            return (str||'').replace(/([*?\[\]'"\\$;&()|^<>\n\t\ ])/g, '\\$1');
         }
 
         // Utility for escaping tab and other special characters for TSV data fields
         function qt(str) {
-            return str
+            return (str||'')
                 .replace(/\t/g, '\\t')
                 .replace(/\n/g, '\\n')
         }
