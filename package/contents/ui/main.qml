@@ -136,16 +136,8 @@ Item {
         executable.logTask('start', task.name)
     }
 
-    function pause() {
-        clockTimer.stop()
-        var task = selectedTask()
-        if (task)
-            executable.logTask('stop', task.name)
-    }
-
     function stop() {
         clockTimer.stop()
-        taskSeconds = 0
         var task = selectedTask()
         if (task)
             executable.logTask('stop', task.name)
@@ -430,7 +422,7 @@ Item {
             switch(mouse.button) {
             case Qt.LeftButton:
                 if (clockTimer.running)
-                    pause()
+                    stop()
                 else
                     start()
                 break
