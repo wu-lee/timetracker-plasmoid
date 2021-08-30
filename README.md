@@ -76,7 +76,7 @@ The other fields include:
 - `prevtime`: the timestamp of the last entry, if from this session.
 - `time`: the timestamp of this log entry
 - `prevtime`: the timestamp of the previous log entry (an integrity check)
-- `parameters`: one or more fields which are optional parameters of this entry
+- `parameters`: zero or more fields which are optional parameters of this entry
   - for `switch`:
     - `name`: the name of the new task
 
