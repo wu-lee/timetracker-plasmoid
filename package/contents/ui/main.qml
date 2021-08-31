@@ -141,7 +141,7 @@ Item {
             return
         }
         
-        taskSeconds = task.duration // FIXME duration needs to be set correctly
+        taskSeconds = task.duration
         clockTimer.start()
         executable.logTask('start')
     }
