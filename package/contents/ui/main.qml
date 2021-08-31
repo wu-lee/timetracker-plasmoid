@@ -683,7 +683,7 @@ Item {
                     height: parent.height
                 }
                 
-                TextInput {
+                QtControls.TextField {
                     id: taskInput
                     font.pixelSize: 24
                     width: parent.width
@@ -691,12 +691,13 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.margins: 5
+                    placeholderText: "New Task..."
                     onAccepted: parent.newTask()
                 }
 
                 PlasmaComponents.Button {
                     implicitWidth: minimumWidth
-                    text: "New Task"
+                    text: "Add"
                     Layout.alignment: Qt.AlignRight
                     Layout.margins: 5
                     onClicked: parent.newTask()
