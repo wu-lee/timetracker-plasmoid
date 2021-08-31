@@ -61,7 +61,7 @@ Item {
             seconds -= minutes * 60
             var hours = Math.floor(minutes / 60)
             minutes -= hours * 60
-            return [hours, formatNum(2, minutes), formatNum(2, seconds)].join(':');
+            return [hours, formatNum(2, minutes), formatNum(2, Math.floor(seconds))].join(':');
         }
         else {
             return '0:00:00'
@@ -79,10 +79,10 @@ Item {
         tasksModel.set(taskIndex, task)
 
         if (clockTimer.running) {
-            if (taskSeconds % 60 === 0) {
+            if (taskSeconds % 60 < 1) {
                 getIdleTime(); // will check the idle time and stop the clock if it is too long
             }
-            if (taskSeconds % (60*idleThresholdMins) === 0) {
+            if (taskSeconds % (60*idleThresholdMins) < 1) {
                 mark()
             }
         }
@@ -306,7 +306,7 @@ Item {
                     var startTime = new Date(taskEntry.prevTime)
                     var stopTime = new Date(taskEntry.time)
                     var milliseconds = stopTime.getTime() - startTime.getTime()
-                    index[currentTask] += Math.round(milliseconds/1000)
+                    index[currentTask] += milliseconds/1000
                 }
                 else {
                     // We are not working!?
