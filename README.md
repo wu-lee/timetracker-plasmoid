@@ -24,10 +24,10 @@ Before installing/upgrading, you need to restart plasmashell, because it caches 
 Then to install the first time:
 
     kpackagetool5 -t Plasma/Applet -i package
-	
+
 To upgrade:
 
-	kpackagetool5 -t Plasma/Applet -u package
+    kpackagetool5 -t Plasma/Applet -u package
 
 To remove:
 
