@@ -238,7 +238,7 @@ Item {
             prevTime = taskEntry.time
 
             // Manage the working state...
-            console.debug(taskEntry.action, taskEntry.param)
+            //console.debug(taskEntry.action, taskEntry.param)
             switch(taskEntry.action) {
             case 'start':
                 startTask(taskEntry)
