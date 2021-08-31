@@ -421,7 +421,7 @@ Item {
             ].join(' ')
             logPrevTime = timestamp
 
-            console.debug('>>', cmd);
+            //console.debug('>>', cmd);
             connectSource(cmd)
         }
         
