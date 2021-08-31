@@ -2,6 +2,7 @@
 import QtQuick 2.3
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 2.0 as QtControls
+import QtQuick.Dialogs 1.2
 import QtGraphicalEffects 1.12
 
 import org.kde.plasma.plasmoid 2.0
@@ -147,16 +148,42 @@ Item {
     }
         
     function mark() {
+        // Don't write marks when the idle alert is showing,
+        if (idleDialog.visible) {
+            console.warn("can't mark, idle alert open")
+            return
+        }
         var task = selectedTask()
+        if (!task) {
+            console.warn("can't mark, no current task")
+            return
+        }
         if (!clockTimer.running) {
             console.warn("can't mark, task not in progress", task.name)
             return
         }
-        if (task === undefined) {
-            console.warn("can't mark, no current task")
+        if (!clockTimer.running) {
+            console.warn("can't mark, task not in progress", task.name)
             return
         }
         executable.logTask('mark')
+    }
+
+    // Discard idle time and stop task
+    function idleStop(atTime) {
+        var task = selectedTask()
+        clockTimer.stop()
+        if (task) {
+            executable.logTask('stop', 'idle-stop', atTime.toJSON())
+        }        
+    }
+    
+    // Discard idle time and continue task
+    function idleContinue(fromTime) {
+        var task = selectedTask()
+        if (task) {
+            executable.logTask('mark', 'idle-discard', fromTime.toJSON())
+        }
     }
 
     function stop() {
@@ -231,8 +258,18 @@ Item {
                          'probably corrupt! ('+ prevTime +' vs '+ taskEntry.prevTime +')')
                 }
             }
-            if (new Date(taskEntry.time) < new Date(taskEntry.prevTime)) {
-                warn('log entry has a timestamp fields out of sequence')
+            switch(taskEntry.action) {
+            case 'stop':
+            case 'mark':
+            case 'init':
+                // No check, these can all contain timestamps out of sequence
+                // (or miss the first, in the case of init)
+                break 
+                
+            default:
+                if (new Date(taskEntry.time) < new Date(taskEntry.prevTime)) {
+                    warn('log entry has a timestamp fields out of sequence')
+                }
             }
             prevTime = taskEntry.time
 
@@ -245,7 +282,7 @@ Item {
 
             case 'stop':
             case 'mark':
-                stopTask(taskEntry);
+                addTaskTime(taskEntry);
                 break
                 
             case 'switch':
@@ -295,7 +332,7 @@ Item {
                     warn('unexpected start entry - no current task set')
                 }
             }
-            function stopTask(taskEntry) {
+            function addTaskTime(taskEntry) {
                 // Assume aggregator will catch events out of time sequence
                 // so no check for that here.
 
@@ -406,8 +443,9 @@ Item {
         }
 
         // Logs a new task status change, and re-list the task log
-        function logTask(action, param) {
-            var timestamp = new Date().toJSON()
+        function logTask(action, param, timestamp) {
+            if (!timestamp)
+                timestamp = new Date().toJSON()
             var taskLogQuoted = sq(taskLog)
             var cmd = [
                 'printf "%x\\t%s\\t%s\\t%s\\t%s\\n"',
@@ -449,12 +487,21 @@ Item {
                     }));
                     break
                 case 'pollIdle':
+                    // Clock should be running, if it isn't just bail
                     if (!clockTimer.running)
                         break
-                    var task = selectedTask()
+
+                    // Task should be selected, if it isn't just bail
+                    if (taskIndex === undefined)
+                        break
+
+                    // Get the idle time
                     var millis = parseInt(stdout, 10)
-                    if (millis / 60000 > idleThresholdMins) {
-                        stop()
+
+                    // If it's large enough, go into idle-alert mode
+                    if (millis / 60000 >= idleThresholdMins) {
+                        idleDialog.idleAt = new Date(Date.now()-millis)
+                        idleDialog.open()
                     }
                     break
                 default:
@@ -704,5 +751,21 @@ Item {
                 }
             }
         }
+    }
+
+    MessageDialog {
+        id: idleDialog
+        property var idleAt: new Date()
+        title: "Title"
+        icon: StandardIcon.Question
+        modality: Qt.ApplicationModal
+        text: "You seem to have stopped working at "+idleAt+
+            "... Keep the intervening time and continue (Save), "+
+            "discard it and continue (Discard), or "+
+            "discard it and stop (Reset)?"
+        standardButtons:  StandardButton.Save | StandardButton.Discard | StandardButton.Reset
+        onAccepted: mark()
+        onDiscard: idleContinue(idleAt)
+        onReset: idleStop(idleAt)
     }
 }           
