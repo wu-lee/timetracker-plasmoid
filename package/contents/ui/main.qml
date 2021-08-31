@@ -14,8 +14,7 @@ Item {
 
     property int logSchemaVersion: 1
     property var startIconSource: plasmoid.file("", "icons/start-light.svg")
-    property int idleThresholdMins: 5
-    property int markIntervalMins: 1
+    property int idleThresholdMins: 1
     property string clock_fontfamily: plasmoid.configuration.clock_fontfamily || "Noto Mono"
     property var taskSeconds: 0
     property var taskIndex: undefined
@@ -83,7 +82,7 @@ Item {
             if (taskSeconds % 60 === 0) {
                 getIdleTime(); // will check the idle time and stop the clock if it is too long
             }
-            if (taskSeconds % 60*markIntervalMins === 0) {
+            if (taskSeconds % (60*idleThresholdMins) === 0) {
                 mark()
             }
         }
