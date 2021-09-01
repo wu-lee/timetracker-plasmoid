@@ -10,11 +10,12 @@ import org.kde.plasma.core 2.0 as PlasmaCore
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.plasma.components 2.0 as PlasmaComponents
 
+import 'parseTasks.js' as Parser
+
 Item {
     id: root
 
-    property int logSchemaVersion: 1
-    property int idleThresholdMins: 1
+    property int idleThresholdMins: 10
     property string clock_fontfamily: plasmoid.configuration.clock_fontfamily || "Noto Mono"
     property var taskSeconds: 0
     property var taskIndex: undefined
@@ -211,131 +212,6 @@ Item {
         executable.logTask('switch', name)
     }
 
-    function parseTasks(eventList) {
-        var index = {}
-        var prevTime
-        var currentTask // the name of the current task, if set
-        
-        eventList.split('\n').map(parseLine).forEach(aggregate)
-        
-        //console.log('debug'+JSON.stringify(index, null, '  '))
-        return index;
-
-        // Local function definitions.
-        function parseLine(line, ix) {
-            // Skip whitespace
-            if (line.match(/^[ ]*$/))
-                return
-            
-            var components = line.split('\t')
-            var expectedSchemaVersion = Number(logSchemaVersion).toString(16)
-            if (components[0] != expectedSchemaVersion) {
-                console.error('Unrecognised schema version',components[0],'.',
-                              '(Expected ',expectedSchemaVersion,')')
-                return
-            }
-            
-            // We assume the supported schema
-            if (components.length < 4) { // min length
-                console.debug('log line '+ix+' contains too few fields: '+line);
-                return;
-            }
-            return {
-                action: components[1],
-                prevTime: components[2],
-                time: components[3],
-                param: components[4],
-            }
-        }
-        function aggregate(taskEntry) {
-            
-            if (!taskEntry)
-                return
-            //console.log(JSON.stringify(taskEntry))
-
-            // Monitor the time sequence.
-            if (prevTime !== undefined) {
-                if (taskEntry.action != 'init' && prevTime !== taskEntry.prevTime) {
-                    warn('log entry mismatches previous entrys timestamp sequence - '+
-                         'probably corrupt! ('+ prevTime +' vs '+ taskEntry.prevTime +')')
-                }
-            }
-            switch(taskEntry.action) {
-            case 'stop':
-            case 'mark':
-            case 'init':
-                // No check, these can all contain timestamps out of sequence
-                // (or miss the first, in the case of init)
-                break 
-                
-            default:
-                if (new Date(taskEntry.time) < new Date(taskEntry.prevTime)) {
-                    warn('log entry has a timestamp fields out of sequence')
-                }
-            }
-            prevTime = taskEntry.time
-
-            // Manage the working state...
-            //console.debug(taskEntry.action, taskEntry.param)
-            switch(taskEntry.action) {
-            case 'start':
-                if (!currentTask)
-                    warn('unexpected start entry - no current task set')
-                break
-
-            case 'stop':
-            case 'mark':
-                if (currentTask === undefined)
-                    // We are not working!?
-                    warn('stop/mask action without a current task set')
-                addTaskTime(taskEntry);
-                break
-                
-            case 'switch':
-                addTaskTime(taskEntry)
-                break
-
-            case 'init':
-                initTask(taskEntry)
-                break
-                
-            default:
-                warn('unknown action "'+taskEntry.action+'"')
-                break
-            }        
-
-            return;
-
-            function warn(message) {
-                console.warn(message,
-                             "for",taskEntry.action,
-                             "at", taskEntry.time);
-            }
-            function addTaskTime(taskEntry) {
-                if (currentTask !== undefined) {
-                    // We are working
-
-                    // Add on current task duration
-                    var startTime = new Date(taskEntry.prevTime)
-                    var stopTime = new Date(taskEntry.time)
-                    var milliseconds = stopTime.getTime() - startTime.getTime()
-
-                    if (!index[currentTask])
-                        index[currentTask] = 0
-                    index[currentTask] = Math.round(milliseconds/1000)
-                }
-                
-                currentTask = taskEntry.param
-                if (!index[currentTask])
-                    index[currentTask] = 0
-            }
-            function initTask(taskEntry) {
-                // If we were working, discard state and start afresh
-                currentTask === undefined
-            }
-        }
-    }
-
     ListModel {
         id: tasksModel
     }
@@ -411,7 +287,7 @@ Item {
             var taskLogQuoted = sq(taskLog)
             logPrevTime = new Date().toJSON()
             connectSource('mkdir -p $(dirname '+taskLogQuoted+') && '+
-                          'printf "'+logSchemaVersion.toString(16)+
+                          'printf "'+Parser.schemaVersion.toString(16)+
                           '\\tinit\\t\\t'+logPrevTime+'\\n" >>'+taskLogQuoted+' && '+
                           'cat '+taskLogQuoted);
         }
@@ -428,7 +304,7 @@ Item {
             var taskLogQuoted = sq(taskLog)
             var cmd = [
                 'printf "%x\\t%s\\t%s\\t%s\\t%s\\n"',
-                logSchemaVersion,
+                Parser.schemaVersion,
                 q(qt(action)),
                 q(qt(logPrevTime||'')),
                 q(qt(timestamp)),
@@ -458,7 +334,7 @@ Item {
                 case 'initTasks':
                 case 'logTask':
                 case 'loadTasks':
-                    var tasks = parseTasks(stdout);
+                    var tasks = Parser.parseTasks(stdout);
                     tasksModel.clear();
                     Object.entries(tasks).map(task => tasksModel.append({
                         name: task[0],
