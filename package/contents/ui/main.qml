@@ -538,7 +538,7 @@ Item {
         onClicked: {
 
             switch(mouse.button) {
-            case Qt.LeftButton:
+            case Qt.RightButton:
                 if (clockTimer.running)
                     stop()
                 else
@@ -548,7 +548,7 @@ Item {
             case Qt.MiddleButton:
                 break
                 
-            case Qt.RightButton:
+            case Qt.LeftButton:
                 plasmoid.expanded = !plasmoid.expanded
                 break
                 
