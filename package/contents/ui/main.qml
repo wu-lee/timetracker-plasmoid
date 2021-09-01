@@ -703,6 +703,7 @@ Item {
                             anchors.horizontalCenter: parent.horizontalCenter
 
                             PlasmaComponents.Button {
+                                id: taskItemButton
                                 implicitWidth: minimumWidth
                                 iconSource: isActive? "media-playback-stop" : "media-playback-start"
                                 Layout.alignment: Qt.AlignLeft
@@ -711,10 +712,21 @@ Item {
                             Text {
                                 id: taskItemName
                                 text: name
-                                Layout.fillWidth: true
+                                elide: Text.ElideRight
                                 Layout.alignment: Qt.AlignLeft
+                                Layout.preferredWidth: Layout.maximumWidth
+                                Layout.maximumWidth: taskItem.width - taskItemButton.width - taskItemDuration.width
+                                Layout.minimumWidth: 10
                                 font.pixelSize: 14
                                 color: textColor
+
+                                QtControls.ToolTip.text: name
+                                QtControls.ToolTip.visible: truncated && taskItemNameArea.containsMouse
+                                MouseArea {
+                                    id: taskItemNameArea
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                }
                             }
                             Text {
                                 id: taskItemDuration
