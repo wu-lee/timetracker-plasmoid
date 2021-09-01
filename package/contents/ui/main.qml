@@ -14,7 +14,6 @@ Item {
     id: root
 
     property int logSchemaVersion: 1
-    property var startIconSource: plasmoid.file("", "icons/start-light.svg")
     property int idleThresholdMins: 1
     property string clock_fontfamily: plasmoid.configuration.clock_fontfamily || "Noto Mono"
     property var taskSeconds: 0
@@ -52,21 +51,24 @@ Item {
         return 'No task currently' 
     }
 
+    function formatNum(length, n) {
+        n = '00' + n
+        return n.substr(n.length-length);
+    }
+    function formatDurationHour(seconds) {
+	return formatNum(2, Math.floor(seconds / 3600))
+    }
+    function formatDurationMin(seconds) {
+	return formatNum(2, Math.floor(seconds / 60) % 60)
+    }
+    function formatDurationSec(seconds) {
+	return formatNum(2, Math.floor(seconds) % 60)
+    }
+
     function formatDuration(seconds) {
-        function formatNum(length, seconds) {
-            seconds = '00' + seconds
-            return seconds.substr(seconds.length-length);
-        }
-        if (seconds) {
-            var minutes = Math.floor(seconds / 60)
-            seconds -= minutes * 60
-            var hours = Math.floor(minutes / 60)
-            minutes -= hours * 60
-            return [hours, formatNum(2, minutes), formatNum(2, Math.floor(seconds))].join(':');
-        }
-        else {
-            return '0:00:00'
-        }
+        return [formatDurationHour(seconds),
+		formatDurationMin(seconds),
+		formatDurationSec(seconds)].join(':');
     }
     
     function secondTick() {
@@ -575,37 +577,77 @@ Item {
                 Layout.preferredHeight: compactRoot.height
                 Layout.preferredWidth: compactRoot.height
                 Layout.fillHeight: true
-
-                PlasmaCore.IconItem {
-                    id: trayIconCompact
+	    
+		        Column {
                     height: parent.height
                     width: parent.width
-                    source: startIconSource
-                    smooth: true
-                    /*
-                      layer {
-                      enabled: true
-                      effect: ColorOverlay {
-                      color: "#0f0"
-                      }
-                      }*/
-                }
+		            anchors.horizontalCenter: parent.horizontalCenter
+		            anchors.verticalCenter: parent.verticalCenter
+		            
+                    PlasmaComponents.Label {
+			            id: trayLabel1
+			            height: parent.height/3
+                        width: parent.width
+                        font.pointSize: -1
+                        font.pixelSize: height
+                        fontSizeMode: Text.FixedSize
+                        font.family: clock_fontfamily
+                        text: formatDurationHour(taskSeconds)
+                        minimumPixelSize: 1
+                        Layout.alignment: Qt.AlignVCenter
+		                horizontalAlignment: Text.AlignHCenter
+                        //                color: getTextColor()
+                        smooth: true
+                    }
+                    PlasmaComponents.Label {
+                        id: trayLabel2
+                        height: parent.height/3
+                        width: parent.width
+                        font.pointSize: -1
+                        font.pixelSize: height
+                        fontSizeMode: Text.FixedSize
+                        font.family: clock_fontfamily
+                        text: formatDurationMin(taskSeconds)
+                        minimumPixelSize: 1
+                        Layout.alignment: Qt.AlignVCenter
+		                horizontalAlignment: Text.AlignHCenter
+                        //                color: getTextColor()
+                        smooth: true
+                    }
+                    PlasmaComponents.Label {
+                        id: trayLabel3
+                        height: parent.height/3
+                        width: parent.width
+                        font.pointSize: -1
+                        font.pixelSize: height
+                        fontSizeMode: Text.FixedSize
+                        font.family: clock_fontfamily
+                        text: formatDurationSec(taskSeconds)
+                        minimumPixelSize: 1
+                        Layout.alignment: Qt.AlignVCenter
+		                horizontalAlignment: Text.AlignHCenter
+                        //                color: getTextColor()
+                        smooth: true
+                    }
+		        }
+		        
             }
-
+	        
+/*
             
             PlasmaComponents.Label {
-                visible: false //!plasmoid.configuration.show_time_in_compact_mode
+                visible: true //!plasmoid.configuration.show_time_in_compact_mode
                 font.pointSize: -1
                 font.pixelSize: compactRoot.height * 0.6
-                fontSizeMode: Text.FixedSize
+                //fontSizeMode: Text.FixedSize
                 font.family: clock_fontfamily
-                text: timeText
+                text: formatDuration(taskSeconds)
                 minimumPixelSize: 1
                 Layout.alignment: Qt.AlignVCenter
                 //                color: getTextColor()
                 smooth: true
-            }
-        }
+            }*/
+	}
 
     }
 
