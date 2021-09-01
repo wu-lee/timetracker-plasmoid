@@ -279,16 +279,20 @@ Item {
             //console.debug(taskEntry.action, taskEntry.param)
             switch(taskEntry.action) {
             case 'start':
-                startTask(taskEntry)
+                if (!currentTask)
+                    warn('unexpected start entry - no current task set')
                 break
 
             case 'stop':
             case 'mark':
+                if (currentTask === undefined)
+		    // We are not working!?
+                    warn('stop/mask action without a current task set')
                 addTaskTime(taskEntry);
                 break
                 
             case 'switch':
-                switchTask(taskEntry)
+                addTaskTime(taskEntry)
                 break
 
             case 'init':
@@ -307,50 +311,23 @@ Item {
                              "for",taskEntry.action,
                              "at", taskEntry.time);
             }
-            function switchTask(taskEntry) {
-                if (!index[currentTask])
-                    index[currentTask] = 0
-                
-                if (currentTask) {
+            function addTaskTime(taskEntry) {
+                if (currentTask !== undefined) {
                     // We are working
 
                     // Add on current task duration
                     var startTime = new Date(taskEntry.prevTime)
                     var stopTime = new Date(taskEntry.time)
                     var milliseconds = stopTime.getTime() - startTime.getTime()
-                    index[currentTask] += Math.round(milliseconds/1000)
+
+		    if (!index[currentTask])
+			index[currentTask] = 0
+                    index[currentTask] = Math.round(milliseconds/1000)
                 }
                 
                 currentTask = taskEntry.param
                 if (!index[currentTask])
                     index[currentTask] = 0
-            }
-            function startTask(taskEntry) {
-                
-                // Assume aggregator will catch events out of time sequence
-                // so no check for that here.
-
-                if (!currentTask) {
-                    warn('unexpected start entry - no current task set')
-                }
-            }
-            function addTaskTime(taskEntry) {
-                // Assume aggregator will catch events out of time sequence
-                // so no check for that here.
-
-                if (currentTask) {
-                    // We are working
-
-                    // Add on task duration
-                    var startTime = new Date(taskEntry.prevTime)
-                    var stopTime = new Date(taskEntry.time)
-                    var milliseconds = stopTime.getTime() - startTime.getTime()
-                    index[currentTask] += milliseconds/1000
-                }
-                else {
-                    // We are not working!?
-                    warn('stop/mask action without a current task set')
-                }
             }
             function initTask(taskEntry) {
                 // If we were working, discard state and start afresh
