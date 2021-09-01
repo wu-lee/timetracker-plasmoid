@@ -583,6 +583,8 @@ Item {
                     width: parent.width
 		            anchors.horizontalCenter: parent.horizontalCenter
 		            anchors.verticalCenter: parent.verticalCenter
+                    property string startedColor: "red"
+                    property string stoppedColor: "white"
 		            
                     PlasmaComponents.Label {
 			            id: trayLabel1
@@ -596,7 +598,7 @@ Item {
                         minimumPixelSize: 1
                         Layout.alignment: Qt.AlignVCenter
 		                horizontalAlignment: Text.AlignHCenter
-                        //                color: getTextColor()
+                        color: clockTimer.running? parent.startedColor:parent.stoppedColor
                         smooth: true
                     }
                     PlasmaComponents.Label {
@@ -611,7 +613,7 @@ Item {
                         minimumPixelSize: 1
                         Layout.alignment: Qt.AlignVCenter
 		                horizontalAlignment: Text.AlignHCenter
-                        //                color: getTextColor()
+                        color: clockTimer.running? parent.startedColor:parent.stoppedColor
                         smooth: true
                     }
                     PlasmaComponents.Label {
@@ -626,7 +628,7 @@ Item {
                         minimumPixelSize: 1
                         Layout.alignment: Qt.AlignVCenter
 		                horizontalAlignment: Text.AlignHCenter
-                        //                color: getTextColor()
+                        color: clockTimer.running? parent.startedColor:parent.stoppedColor
                         smooth: true
                     }
 		        }
