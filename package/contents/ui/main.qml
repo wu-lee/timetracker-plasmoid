@@ -56,19 +56,19 @@ Item {
         return n.substr(n.length-length);
     }
     function formatDurationHour(seconds) {
-	return formatNum(2, Math.floor(seconds / 3600))
+        return formatNum(2, Math.floor(seconds / 3600))
     }
     function formatDurationMin(seconds) {
-	return formatNum(2, Math.floor(seconds / 60) % 60)
+        return formatNum(2, Math.floor(seconds / 60) % 60)
     }
     function formatDurationSec(seconds) {
-	return formatNum(2, Math.floor(seconds) % 60)
+        return formatNum(2, Math.floor(seconds) % 60)
     }
 
     function formatDuration(seconds) {
         return [formatDurationHour(seconds),
-		formatDurationMin(seconds),
-		formatDurationSec(seconds)].join(':');
+                formatDurationMin(seconds),
+                formatDurationSec(seconds)].join(':');
     }
     
     function secondTick() {
@@ -148,7 +148,7 @@ Item {
         clockTimer.start()
         executable.logTask('start')
     }
-        
+    
     function mark(reason) {
         // Don't write marks when the idle alert is showing,
         if (idleDialog.visible) {
@@ -286,7 +286,7 @@ Item {
             case 'stop':
             case 'mark':
                 if (currentTask === undefined)
-		    // We are not working!?
+                    // We are not working!?
                     warn('stop/mask action without a current task set')
                 addTaskTime(taskEntry);
                 break
@@ -320,8 +320,8 @@ Item {
                     var stopTime = new Date(taskEntry.time)
                     var milliseconds = stopTime.getTime() - startTime.getTime()
 
-		    if (!index[currentTask])
-			index[currentTask] = 0
+                    if (!index[currentTask])
+                        index[currentTask] = 0
                     index[currentTask] = Math.round(milliseconds/1000)
                 }
                 
@@ -554,18 +554,18 @@ Item {
                 Layout.preferredHeight: compactRoot.height
                 Layout.preferredWidth: compactRoot.height
                 Layout.fillHeight: true
-	    
-		        Column {
+                
+                Column {
                     height: parent.height
                     width: parent.width
-		            anchors.horizontalCenter: parent.horizontalCenter
-		            anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.verticalCenter: parent.verticalCenter
                     property string startedColor: "red"
                     property string stoppedColor: "white"
-		            
+                    
                     PlasmaComponents.Label {
-			            id: trayLabel1
-			            height: parent.height/3
+                        id: trayLabel1
+                        height: parent.height/3
                         width: parent.width
                         font.pointSize: -1
                         font.pixelSize: height
@@ -574,7 +574,7 @@ Item {
                         text: formatDurationHour(taskSeconds)
                         minimumPixelSize: 1
                         Layout.alignment: Qt.AlignVCenter
-		                horizontalAlignment: Text.AlignHCenter
+                        horizontalAlignment: Text.AlignHCenter
                         color: clockTimer.running? parent.startedColor:parent.stoppedColor
                         smooth: true
                     }
@@ -589,7 +589,7 @@ Item {
                         text: formatDurationMin(taskSeconds)
                         minimumPixelSize: 1
                         Layout.alignment: Qt.AlignVCenter
-		                horizontalAlignment: Text.AlignHCenter
+                        horizontalAlignment: Text.AlignHCenter
                         color: clockTimer.running? parent.startedColor:parent.stoppedColor
                         smooth: true
                     }
@@ -604,29 +604,29 @@ Item {
                         text: formatDurationSec(taskSeconds)
                         minimumPixelSize: 1
                         Layout.alignment: Qt.AlignVCenter
-		                horizontalAlignment: Text.AlignHCenter
+                        horizontalAlignment: Text.AlignHCenter
                         color: clockTimer.running? parent.startedColor:parent.stoppedColor
                         smooth: true
                     }
-		        }
-		        
+                }
+                
             }
-	        
-/*
             
-            PlasmaComponents.Label {
-                visible: true //!plasmoid.configuration.show_time_in_compact_mode
-                font.pointSize: -1
-                font.pixelSize: compactRoot.height * 0.6
-                //fontSizeMode: Text.FixedSize
-                font.family: clock_fontfamily
-                text: formatDuration(taskSeconds)
-                minimumPixelSize: 1
-                Layout.alignment: Qt.AlignVCenter
-                //                color: getTextColor()
-                smooth: true
-            }*/
-	}
+            /*
+              
+              PlasmaComponents.Label {
+              visible: true //!plasmoid.configuration.show_time_in_compact_mode
+              font.pointSize: -1
+              font.pixelSize: compactRoot.height * 0.6
+              //fontSizeMode: Text.FixedSize
+              font.family: clock_fontfamily
+              text: formatDuration(taskSeconds)
+              minimumPixelSize: 1
+              Layout.alignment: Qt.AlignVCenter
+              //                color: getTextColor()
+              smooth: true
+              }*/
+        }
 
     }
 
