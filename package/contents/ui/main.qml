@@ -149,7 +149,7 @@ Item {
         executable.logTask('start')
     }
         
-    function mark() {
+    function mark(reason) {
         // Don't write marks when the idle alert is showing,
         if (idleDialog.visible) {
             console.warn("can't mark, idle alert open")
@@ -168,7 +168,7 @@ Item {
             console.warn("can't mark, task not in progress", task.name)
             return
         }
-        executable.logTask('mark')
+        executable.logTask('mark', reason)
     }
 
     // Discard idle time and stop task
@@ -181,7 +181,7 @@ Item {
     }
     
     // Discard idle time and continue task
-    function idleContinue(fromTime) {
+    function idleDiscard(fromTime) {
         var task = selectedTask()
         if (task) {
             executable.logTask('mark', 'idle-discard', fromTime.toJSON())
@@ -808,8 +808,8 @@ Item {
             "discard it and continue (Discard), or "+
             "discard it and stop (Reset)?"
         standardButtons:  StandardButton.Save | StandardButton.Discard | StandardButton.Reset
-        onAccepted: mark()
-        onDiscard: idleContinue(idleAt)
+        onAccepted: mark('idle-continue')
+        onDiscard: idleDiscard(idleAt)
         onReset: idleStop(idleAt)
     }
 }           
