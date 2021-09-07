@@ -426,6 +426,9 @@ Item {
                 break
                 
             case Qt.LeftButton:
+                if (!plasmoid.expanded) {
+                    executable.loadTasks()
+                }
                 plasmoid.expanded = !plasmoid.expanded
                 break
                 
