@@ -13,7 +13,7 @@ function parseTasks(eventList) {
     // Local function definitions.
     function parseLine(line, ix) {
         // Skip whitespace
-        if (line.match(/^[ ]*$/))
+        if (line.match(/^[ \t]*$/))
             return
 
         // Skip comments (leading '#' or ';'), JSON objects/arrays (leading '{' or '[')
