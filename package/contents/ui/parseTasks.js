@@ -128,5 +128,5 @@ function parseTasks(eventList) {
 }
 
 // NodeJS accomodation
-if (module)
+if (typeof module === 'object')
     module.exports = { parseTasks, schemaVersion };
