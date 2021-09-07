@@ -52,18 +52,18 @@ Item {
         return 'No task currently' 
     }
 
-    function formatNum(length, n) {
+    function pad(n) {
         n = '00' + n
-        return n.substr(n.length-length);
+        return n.substr(n.length-2);
     }
     function formatDurationHour(seconds) {
-        return formatNum(2, Math.floor(seconds / 3600))
+        return pad(Math.floor(seconds / 3600))
     }
     function formatDurationMin(seconds) {
-        return formatNum(2, Math.floor(seconds / 60) % 60)
+        return pad(Math.floor(seconds / 60) % 60)
     }
     function formatDurationSec(seconds) {
-        return formatNum(2, Math.floor(seconds) % 60)
+        return pad(Math.floor(seconds) % 60)
     }
 
     function formatDuration(seconds) {
@@ -177,7 +177,7 @@ Item {
         var task = selectedTask()
         clockTimer.stop()
         if (task) {
-            executable.logTask('stop', 'idle-stop', atTime.toJSON())
+            executable.logTask('stop', 'idle-stop', toIsoString(atTime))
         }        
     }
     
@@ -185,7 +185,7 @@ Item {
     function idleDiscard(fromTime) {
         var task = selectedTask()
         if (task) {
-            executable.logTask('mark', 'idle-discard', fromTime.toJSON())
+            executable.logTask('mark', 'idle-discard', toIsoString(fromTime))
         }
     }
 
@@ -212,6 +212,30 @@ Item {
         executable.logTask('switch', name)
     }
 
+    
+    // This function writes an ISO8601 formatted localtime date with timezone
+    //
+    // Instead of the built-in toISOString() and toJSON() functions, this writes
+    // a version in local time, with a zone offset.
+    //
+    // This way, users get to see their own timezone in the logs, and
+    // JS can still parse it reliably (or at least I hope so!)
+    //
+    // Adapted from this SO answer:
+    // https://stackoverflow.com/a/17415677/2960236
+    function toIsoString(date) {
+        var tzo = -date.getTimezoneOffset(),
+            dif = tzo >= 0 ? '+' : '-';
+        
+        return date.getFullYear() +
+            '-' + pad(date.getMonth() + 1) +
+            '-' + pad(date.getDate()) +
+            'T' + pad(date.getHours()) +
+            ':' + pad(date.getMinutes()) +
+            ':' + pad(date.getSeconds()) +
+            dif + pad(tzo / 60) + pad(tzo % 60);
+    }
+    
     ListModel {
         id: tasksModel
     }
@@ -285,7 +309,7 @@ Item {
         // Commands
         function initTasks() {
             var taskLogQuoted = sq(taskLog)
-            logPrevTime = new Date().toJSON()
+            logPrevTime = toIsoString(new Date())
             connectSource('mkdir -p $(dirname '+taskLogQuoted+') && '+
                           'printf "'+Parser.schemaVersion.toString(16)+
                           '\\tinit\\t\\t'+logPrevTime+'\\n" >>'+taskLogQuoted+' && '+
@@ -300,7 +324,7 @@ Item {
         // Logs a new task status change, and re-list the task log
         function logTask(action, param, timestamp) {
             if (!timestamp)
-                timestamp = new Date().toJSON()
+                timestamp = toIsoString(new Date())
             var taskLogQuoted = sq(taskLog)
             var cmd = [
                 'printf "%x\\t%s\\t%s\\t%s\\t%s\\n"',
