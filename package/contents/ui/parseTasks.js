@@ -15,6 +15,11 @@ function parseTasks(eventList) {
         // Skip whitespace
         if (line.match(/^[ ]*$/))
             return
+
+        // Skip comments (leading '#' or ';'), JSON objects/arrays (leading '{' or '[')
+        // This is for convenient noting, and insertion of other data by other applications.
+        if (line.match(/^[#;\[\{]/))
+            return
         
         var components = line.split('\t')
         var expectedSchemaVersion = Number(schemaVersion).toString(16)
