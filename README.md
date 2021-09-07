@@ -21,6 +21,10 @@ Before installing/upgrading, you need to restart plasmashell, because it caches 
 
     killall plasmashell; kstart5 plasmashell
 
+In my experience this doesn't always end happily, so you may need to
+restart your session anyway.  You might try removing the contents of
+`~/.cache/plasmashell/qmlcache/`, but at your own risk.
+
 Then to install the first time:
 
     kpackagetool5 -t Plasma/Applet -i package
