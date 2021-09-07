@@ -15,6 +15,7 @@ import 'parseTasks.js' as Parser
 Item {
     id: root
 
+    property string widgetVersion: '0.1.0'
     property int idleThresholdMins: 10
     property string clock_fontfamily: plasmoid.configuration.clock_fontfamily || "Noto Mono"
     property var taskSeconds: 0
@@ -312,7 +313,8 @@ Item {
             logPrevTime = toIsoString(new Date())
             connectSource('mkdir -p $(dirname '+taskLogQuoted+') && '+
                           'printf "'+Parser.schemaVersion.toString(16)+
-                          '\\tinit\\t\\t'+logPrevTime+'\\n" >>'+taskLogQuoted+' && '+
+                          '\\tinit\\t\\t'+logPrevTime+'\\t'+sq(widgetVersion)+
+			  '\\n" >>'+taskLogQuoted+' && '+
                           'cat '+taskLogQuoted);
         }
 
