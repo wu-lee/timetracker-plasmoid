@@ -79,7 +79,6 @@ Item {
             return
         //console.debug("tick! "+formatDuration(taskSeconds))
         taskSeconds += 1
-        timeText = formatDuration(taskSeconds)
         task.duration = taskSeconds
         tasksModel.set(taskIndex, task)
 
