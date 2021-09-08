@@ -213,6 +213,18 @@ Item {
         executable.logTask('switch', name)
     }
 
+    // refreshes all the UI info when a new list of tasks is set
+    function updateTasks(tasks) {
+	tasksModel.clear();
+        Object.entries(tasks).map(task => tasksModel.append({
+            name: task[0],
+            duration: task[1]
+        }));
+	// update taskSeconds
+	var task = selectedTask();
+	taskSeconds = task? task.duration : 0;
+    }
+
     
     // This function writes an ISO8601 formatted localtime date with timezone
     //
@@ -361,11 +373,7 @@ Item {
                 case 'logTask':
                 case 'loadTasks':
                     var tasks = Parser.parseTasks(stdout);
-                    tasksModel.clear();
-                    Object.entries(tasks).map(task => tasksModel.append({
-                        name: task[0],
-                        duration: task[1]
-                    }));
+		    updateTasks(tasks);		    
                     break
                 case 'pollIdle':
                     // Clock should be running, if it isn't just bail
