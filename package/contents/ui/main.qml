@@ -10,7 +10,8 @@ import org.kde.plasma.core 2.0 as PlasmaCore
 import org.kde.plasma.extras 2.0 as PlasmaExtras
 import org.kde.plasma.components 2.0 as PlasmaComponents
 
-import 'parseTasks.js' as Parser
+import 'parseTasks.mjs' as Parser
+import 'dateFormat.mjs' as DateFormat
 
 Item {
     id: root
@@ -21,7 +22,7 @@ Item {
     property var taskSeconds: 0
     property var taskIndex: undefined
     property var logPrevTime: undefined
-    property var timeText: formatDuration(taskSeconds)
+    property var timeText: DateFormat.duration(taskSeconds)
     property var taskLog: "~/tasks.log"
 
     // Initial size of the window in gridUnits
@@ -53,31 +54,11 @@ Item {
         return 'No task currently' 
     }
 
-    function pad(n) {
-        n = '00' + n
-        return n.substr(n.length-2);
-    }
-    function formatDurationHour(seconds) {
-        return pad(Math.floor(seconds / 3600))
-    }
-    function formatDurationMin(seconds) {
-        return pad(Math.floor(seconds / 60) % 60)
-    }
-    function formatDurationSec(seconds) {
-        return pad(Math.floor(seconds) % 60)
-    }
-
-    function formatDuration(seconds) {
-        return [formatDurationHour(seconds),
-                formatDurationMin(seconds),
-                formatDurationSec(seconds)].join(':');
-    }
-    
     function secondTick() {
         var task = selectedTask()
         if (!task)
             return
-        //console.debug("tick! "+formatDuration(taskSeconds))
+        //console.debug("tick! "+DateFormat.duration(taskSeconds))
         taskSeconds += 1
         task.duration = taskSeconds
         tasksModel.set(taskIndex, task)
@@ -177,7 +158,7 @@ Item {
         var task = selectedTask()
         clockTimer.stop()
         if (task) {
-            executable.logTask('stop', 'idle-stop', toIsoString(atTime))
+            executable.logTask('stop', 'idle-stop', DateFormat.isoLocalTime(atTime))
         }        
     }
     
@@ -185,7 +166,7 @@ Item {
     function idleDiscard(fromTime) {
         var task = selectedTask()
         if (task) {
-            executable.logTask('mark', 'idle-discard', toIsoString(fromTime))
+            executable.logTask('mark', 'idle-discard', DateFormat.isoLocalTime(fromTime))
         }
     }
 
@@ -224,29 +205,6 @@ Item {
 	taskSeconds = task? task.duration : 0;
     }
 
-    
-    // This function writes an ISO8601 formatted localtime date with timezone
-    //
-    // Instead of the built-in toISOString() and toJSON() functions, this writes
-    // a version in local time, with a zone offset.
-    //
-    // This way, users get to see their own timezone in the logs, and
-    // JS can still parse it reliably (or at least I hope so!)
-    //
-    // Adapted from this SO answer:
-    // https://stackoverflow.com/a/17415677/2960236
-    function toIsoString(date) {
-        var tzo = -date.getTimezoneOffset(),
-            dif = tzo >= 0 ? '+' : '-';
-        
-        return date.getFullYear() +
-            '-' + pad(date.getMonth() + 1) +
-            '-' + pad(date.getDate()) +
-            'T' + pad(date.getHours()) +
-            ':' + pad(date.getMinutes()) +
-            ':' + pad(date.getSeconds()) +
-            dif + pad(tzo / 60) + pad(tzo % 60);
-    }
     
     ListModel {
         id: tasksModel
@@ -321,7 +279,8 @@ Item {
         // Commands
         function initTasks() {
             var taskLogQuoted = sq(taskLog)
-            logPrevTime = toIsoString(new Date())
+
+            logPrevTime = DateFormat.isoLocalTime(new Date())
             connectSource('mkdir -p $(dirname '+taskLogQuoted+') && '+
                           'printf "'+Parser.schemaVersion.toString(16)+
                           '\\tinit\\t\\t'+logPrevTime+'\\t'+sq(widgetVersion)+
@@ -337,7 +296,7 @@ Item {
         // Logs a new task status change, and re-list the task log
         function logTask(action, param, timestamp) {
             if (!timestamp)
-                timestamp = toIsoString(new Date())
+                timestamp = DateFormat.isoLocalTime(new Date())
             var taskLogQuoted = sq(taskLog)
             var cmd = [
                 'printf "%x\\t%s\\t%s\\t%s\\t%s\\n"',
@@ -371,7 +330,7 @@ Item {
                 case 'initTasks':
                 case 'logTask':
                 case 'loadTasks':
-                    var tasks = Parser.parseTasks(stdout);
+                    var tasks = Parser.parseTasks(stdout, Parser.mkTaskListAccumulator());
 		    updateTasks(tasks);		    
                     break
                 case 'pollIdle':
@@ -483,7 +442,7 @@ Item {
                         font.pixelSize: height
                         fontSizeMode: Text.FixedSize
                         font.family: clock_fontfamily
-                        text: formatDurationHour(taskSeconds)
+                        text: DateFormat.durationHour(taskSeconds)
                         minimumPixelSize: 1
                         Layout.alignment: Qt.AlignVCenter
                         horizontalAlignment: Text.AlignHCenter
@@ -498,7 +457,7 @@ Item {
                         font.pixelSize: height
                         fontSizeMode: Text.FixedSize
                         font.family: clock_fontfamily
-                        text: formatDurationMin(taskSeconds)
+                        text: DateFormat.durationMin(taskSeconds)
                         minimumPixelSize: 1
                         Layout.alignment: Qt.AlignVCenter
                         horizontalAlignment: Text.AlignHCenter
@@ -513,7 +472,7 @@ Item {
                         font.pixelSize: height
                         fontSizeMode: Text.FixedSize
                         font.family: clock_fontfamily
-                        text: formatDurationSec(taskSeconds)
+                        text: DateFormat.durationSec(taskSeconds)
                         minimumPixelSize: 1
                         Layout.alignment: Qt.AlignVCenter
                         horizontalAlignment: Text.AlignHCenter
@@ -532,7 +491,7 @@ Item {
               font.pixelSize: compactRoot.height * 0.6
               //fontSizeMode: Text.FixedSize
               font.family: clock_fontfamily
-              text: formatDuration(taskSeconds)
+              text: DateFormat.duration(taskSeconds)
               minimumPixelSize: 1
               Layout.alignment: Qt.AlignVCenter
               //                color: getTextColor()
@@ -642,7 +601,7 @@ Item {
                             }
                             Text {
                                 id: taskItemDuration
-                                text: formatDuration(duration)
+                                text: DateFormat.duration(duration)
                                 Layout.alignment: Qt.AlignRight
                                 font.pixelSize: 14
                                 color: textColor

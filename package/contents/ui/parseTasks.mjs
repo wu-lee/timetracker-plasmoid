@@ -1,14 +1,63 @@
-const schemaVersion = 1;
+// -*- javascript -*-
+import DateFormat from './dateFormat.mjs';
 
-function parseTasks(eventList) {
-    var index = {}
+export const schemaVersion = 1;
+
+export function mkTaskListAccumulator() {
+    var index = {};
+
+    return {
+        add: (task, startTime, stopTime) => {
+            var milliseconds = stopTime.getTime() - startTime.getTime()
+            
+            if (!index[task])
+                index[task] = 0
+            index[task] += Math.round(milliseconds/1000);
+        },
+        result: () => index,
+    };
+}
+
+export function mkReportAccumulator() {
+    var index = {};
+
+    return {
+        add: (task, startTime, stopTime) => {
+            var milliseconds = stopTime.getTime() - startTime.getTime();
+	    startTime.setHours(0,0,0,0);
+            var date = DateFormat.isoLocalTime(startTime);
+            
+            if (!index[date])
+                index[date] = {}
+
+            var dateIndex = index[date];
+            if (!dateIndex[task])
+                dateIndex[task] = 0
+            dateIndex[task] += Math.round(milliseconds/1000);
+        },
+        result: () => {
+	    for(var date in index) {
+		var tasks = index[date];
+		var total = 0;
+		for(var task in tasks) {
+		    total += tasks[task];
+		    tasks[task] = DateFormat.duration(tasks[task]);
+		}
+		tasks['total'] = DateFormat.duration(total);
+	    }
+	    return index;
+	}
+    };
+}
+
+export function parseTasks(eventList, accumulator) {
     var prevTime
     var currentTask // the name of the current task, if set
     
     eventList.split('\n').map(parseLine).forEach(aggregate)
     
     //console.log('debug'+JSON.stringify(index, null, '  '))
-    return index;
+    return accumulator.result();
 
     // Local function definitions.
     function parseLine(line, ix) {
@@ -114,16 +163,12 @@ function parseTasks(eventList) {
                 var startTime = new Date(taskEntry.prevTime)
                 var stopTime = new Date(taskEntry.time)
                 var milliseconds = stopTime.getTime() - startTime.getTime()
-                
-                if (!index[currentTask])
-                    index[currentTask] = 0
-                index[currentTask] += Math.round(milliseconds/1000)
+
+                accumulator.add(currentTask, startTime, stopTime);
             }
         }
         function switchTask(taskEntry) {
             currentTask = taskEntry.param
-            if (!index[currentTask])
-                index[currentTask] = 0
         }
         function initTask(taskEntry) {
             // If we were working, discard state and start afresh
@@ -132,6 +177,14 @@ function parseTasks(eventList) {
     }
 }
 
+export default {
+    schemaVersion,
+    mkTaskListAccumulator,
+    mkReportAccumulator,
+    parseTasks,
+};
+
 // NodeJS accomodation
-if (typeof module === 'object')
-    module.exports = { parseTasks, schemaVersion };
+//if (typeof module === 'object')
+//    module.exports = { parseTasks, schemaVersion };
+

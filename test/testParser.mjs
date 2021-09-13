@@ -65,7 +65,7 @@ const testCases = [
 ]
 
 testCases.forEach((c) => {
-    const output = Parser.parseTasks(c.log, Parser.mkTaskListAccumulator())
+            const output = Parser.parseTasks(c.log, Parser.mkTaskListAccumulator())
     if (JSON.stringify(output) !== JSON.stringify(c.expect))
         console.log(c.name,": failed", output);
     else
