@@ -60,7 +60,7 @@ const testCases = [
 1	init		2021-09-01T21:57:36.167Z
 1	init		2021-09-01T21:58:03.365Z
      `,
-     expect: { 'ICA data update': 1435 },
+     expect: { 'ICA data update': 1442 },
     }
 ]
 

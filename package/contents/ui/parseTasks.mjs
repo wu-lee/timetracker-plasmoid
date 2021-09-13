@@ -3,6 +3,14 @@ import DateFormat from './dateFormat.mjs';
 
 export const schemaVersion = 1;
 
+
+// Round the numeric values of a map to the nearest integer
+function roundValues(map) {
+    for(var k in map) {
+	map[k] = Math.round(map[k]);
+    }
+}
+
 export function mkTaskListAccumulator() {
     var index = {};
 
@@ -12,9 +20,12 @@ export function mkTaskListAccumulator() {
             
             if (!index[task])
                 index[task] = 0
-            index[task] += Math.round(milliseconds/1000);
+            index[task] += milliseconds/1000;
         },
-        result: () => index,
+        result: () => {
+	    roundValues(index);
+	    return index;
+	}
     };
 }
 
@@ -33,7 +44,7 @@ export function mkReportAccumulator() {
             var dateIndex = index[date];
             if (!dateIndex[task])
                 dateIndex[task] = 0
-            dateIndex[task] += Math.round(milliseconds/1000);
+            dateIndex[task] += milliseconds/1000;
         },
         result: () => {
 	    for(var date in index) {
