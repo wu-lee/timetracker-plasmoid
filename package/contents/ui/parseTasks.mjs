@@ -181,7 +181,7 @@ export function parseTasks(eventList, accumulator) {
                 break
                 
             case 'switch':
-                addTaskTime(taskEntry);
+                //switch task has no task-related duration, so don't addTaskTime
                 switchTask(taskEntry);
                 break
 
