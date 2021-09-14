@@ -62,40 +62,6 @@ export function mkReportAccumulator() {
     };
 }
 
-export function mkTsvReportAccumulator() {
-    var reportAccumulator = mkReportAccumulator();
-
-    function escape(str) {
-	return str
-	    .replace(/;/g, '\\;')
-	    .replace(/\t/g, '\\t');
-    }
-
-    return {
-	add: reportAccumulator.add,
-	result: () => {
-	    var index = reportAccumulator.index();
-	    
-	    var rows = Object.keys(index)
-		.sort()
-		.map(date => {
-		    var tasks = index[date];
-		    var total = Object.values(tasks)
-			.reduce((t, n) => t+n, 0);
-		    var names = Object.keys(tasks)
-			.sort()
-			.map(escape)
-			.join('; ');
-		    
-		    return [date,
-			    Math.round(total/(60*30))/2,
-			    names].join('\t');
-		});
-	    return rows.join('\n');
-	}
-    };
-}
-
 export function parseTasks(eventList, accumulator) {
     var prevTime
     var currentTask // the name of the current task, if set
@@ -227,7 +193,6 @@ export default {
     schemaVersion,
     mkTaskListAccumulator,
     mkReportAccumulator,
-    mkTsvReportAccumulator,
     parseTasks,
 };
 

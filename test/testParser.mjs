@@ -16,7 +16,6 @@ const testCases = [
      expect: {
 	 tasks: {},
 	 report: {},
-	 tsv: '',
      },
     },
     
@@ -25,7 +24,6 @@ const testCases = [
      expect: {
 	 tasks: {},
 	 report: {},
-	 tsv: '',
      },
     },
 
@@ -79,7 +77,6 @@ const testCases = [
 		 'total': '00:24:02'
 	     }
 	 },
-	 tsv: '2021-09-01T00:00:00+0100	0.5	ICA data update',
      },
     },
 
@@ -433,14 +430,6 @@ const testCases = [
 		 total: '07:20:52'
 	     }
 	 },
-	 tsv: `2021-09-01T00:00:00+0100	0.5	ICA data update
-2021-09-02T00:00:00+0100	5	ICA data update; ObO demo map site
-2021-09-03T00:00:00+0100	3.5	Add access for Alison mersey green; Ensure FB links show in mgp3; Mutual Aid spreadsheet issue #2; ObO demo map site
-2021-09-06T00:00:00+0100	1	Meeting with John
-2021-09-07T00:00:00+0100	2	ICA data update; ICA youth data update; Issue management
-2021-09-08T00:00:00+0100	0.5	Issue management; ObO correspondance
-2021-09-09T00:00:00+0100	5	ICA popup.js fix; Meeting with Anna Thorne; Meeting with John and Colm
-2021-09-10T00:00:00+0100	7.5	ICA popup.js fix`,
      },
     },
 ];
@@ -462,13 +451,3 @@ testCases.forEach((c) => {
     else
         console.log(c.name,": passed");
 })
-
-// Test TSV report parsing
-testCases.forEach((c) => {
-    const output = Parser.parseTasks(c.log, Parser.mkTsvReportAccumulator())
-    if (JSON.stringify(output) !== JSON.stringify(c.expect.tsv))
-        console.log(c.name,": failed", output);
-    else
-        console.log(c.name,": passed");
-})
-
