@@ -1,9 +1,10 @@
 // -*- javascript -*-
-import Parser from '../package/contents/ui/parseTasks.mjs';
+import { parseTasks, mkReportAccumulator } from '../package/contents/ui/parseTasks.mjs';
+import { durationHourDecimal } from '../package/contents/ui/dateFormat.mjs';
 import fs from 'fs';
 
 function mkTsvReportAccumulator() {
-    var reportAccumulator = Parser.mkReportAccumulator();
+    var reportAccumulator = mkReportAccumulator();
 
     function escape(str) {
 	return str
@@ -24,6 +25,7 @@ function mkTsvReportAccumulator() {
 			.reduce((t, n) => t+n, 0);
 		    var names = Object.keys(tasks)
 			.sort()
+			.map(name => `${name} (${durationHourDecimal(tasks[name])})`)
 			.map(escape)
 			.join('; ');
 		    
@@ -38,7 +40,7 @@ function mkTsvReportAccumulator() {
 
 
 const data = fs.readFileSync('/home/nick/tasks.log').toString();
-const output = Parser.parseTasks(data, mkTsvReportAccumulator());
+const output = parseTasks(data, mkTsvReportAccumulator());
 
 console.log(output);
 
