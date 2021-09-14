@@ -1,5 +1,6 @@
-const Parser = require('../package/contents/ui/parseTasks.js');
-const fs = require('fs');
+// -*- javascript -*-
+import Parser from '../package/contents/ui/parseTasks.mjs';
+import fs from 'fs';
 
 
 const data = fs.readFileSync('/home/nick/tasks.log').toString();
@@ -64,7 +65,7 @@ const testCases = [
 ]
 
 testCases.forEach((c) => {
-            const output = Parser.parseTasks(c.log)
+    const output = Parser.parseTasks(c.log, Parser.mkTaskListAccumulator())
     if (JSON.stringify(output) !== JSON.stringify(c.expect))
         console.log(c.name,": failed", output);
     else
