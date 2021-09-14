@@ -6,21 +6,31 @@ export function pad(n) {
 }
 
 export function durationHour(seconds) {
-    return pad(Math.floor(seconds / 3600));
+    const sign = seconds >= 0? '' : '-';
+    seconds = Math.abs(seconds);
+    return sign + pad(Math.floor(seconds / 3600));
 }
 
 export function durationMin(seconds) {
-    return pad(Math.floor(seconds / 60) % 60);
+    const sign = seconds >= 0? '' : '-';
+    seconds = Math.abs(seconds);
+    return sign + pad(Math.floor(seconds / 60) % 60);
 }
 
 export function durationSec(seconds) {
-    return pad(Math.floor(seconds) % 60);
+    const sign = seconds >= 0? '' : '-';
+    seconds = Math.abs(seconds);
+    return sign + pad(Math.floor(seconds) % 60);
 }
 
 export function duration(seconds) {
-    return [durationHour(seconds),
-            durationMin(seconds),
-            durationSec(seconds)].join(':');
+    const sign = seconds >= 0? '' : '-';
+    seconds = Math.abs(seconds);
+    return sign + [
+	durationHour(seconds),
+        durationMin(seconds),
+        durationSec(seconds)
+    ].join(':');
 }
     
 
