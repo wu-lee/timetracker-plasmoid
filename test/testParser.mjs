@@ -73,8 +73,13 @@ const testCases = [
      `,
      expect: {
 	 tasks: {'ICA data update': 1442 },
-	 report: { '2021-09-01T00:00:00+0100': { 'ICA data update': 1442 } },
-	 tsv: '',
+	 report: {
+	     '2021-09-01T00:00:00+0100': {
+		 'ICA data update': '00:24:02',
+		 'total': '00:24:02'
+	     }
+	 },
+	 tsv: '2021-09-01T00:00:00+0100	0.5	ICA data update',
      },
     },
 
@@ -373,7 +378,7 @@ const testCases = [
 	 tasks: {
 	     'ICA data update': 65591,
 	     'ObO demo map site': 38621,
-	     'Issue management': 88385,
+	     'Issue management': 85684,
 	     'Add access for Alison mersey green': 2074,
 	     'Mutual Aid spreadsheet issue #2': 1988,
 	     'Ensure FB links show in mgp3': 248942,
@@ -382,45 +387,60 @@ const testCases = [
 	     'ObO correspondance': 1082,
 	     'ICA popup.js fix': 40835,
 	     'Meeting with John and Colm': 8463,
-	     'Meeting with Anna Thorne': 2591,
+	     'Meeting with Anna Thorne': 4751,
 	 },
 	 report: {
 	     '2021-09-01T00:00:00+0100': {
-		 'ICA data update': '00:27:37'
+		 'ICA data update': '00:27:37',
+		 total: '00:27:37'
 	     },
 	     '2021-09-02T00:00:00+0100': {
 		 'ICA data update': '01:24:53',
-		 'ObO demo map site': '03:35:24'
+		 'ObO demo map site': '03:35:24',
+		 total: '05:00:18'
 	     },
 	     '2021-09-03T00:00:00+0100': {
 		 'ObO demo map site': '07:08:16',
 		 'Issue management': '00:02:18',
 		 'Add access for Alison mersey green': '00:34:33',
 		 'Mutual Aid spreadsheet issue #2': '00:33:08',
-		 'Ensure FB links show in mgp3': '69:09:02'
+		 'Ensure FB links show in mgp3': '69:09:02',
+		 total: '77:27:18'
 	     },
 	     '2021-09-06T00:00:00+0100': {
-		 'Meeting with John': '00:45:00'
+		 'Meeting with John': '00:45:00',
+		 total: '00:45:00'
 	     },
 	     '2021-09-07T00:00:00+0100': {
 		 'Issue management': '00:01:44',
 		 'ICA youth data update': '01:14:54',
-		 'ICA data update': '16:20:39'
+		 'ICA data update': '16:20:39',
+		 total: '17:37:17'
 	     },
 	     '2021-09-08T00:00:00+0100': {
 		 'ObO correspondance': '00:18:02',
-		 'Issue management': '24:29:02'
+		 'Issue management': '23:44:01',
+		 total: '24:02:03'
 	     },
 	     '2021-09-09T00:00:00+0100': {
 		 'ICA popup.js fix': '03:59:43',
 		 'Meeting with John and Colm': '02:21:03',
-		 'Meeting with Anna Thorne': '00:43:11'
+		 'Meeting with Anna Thorne': '01:19:11',
+		 total: '07:39:57'
 	     },
 	     '2021-09-10T00:00:00+0100': {
-		 'ICA popup.js fix': '07:20:52'
-	     },
+		 'ICA popup.js fix': '07:20:52',
+		 total: '07:20:52'
+	     }
 	 },
-	 tsv: '',
+	 tsv: `2021-09-01T00:00:00+0100	0.5	ICA data update
+2021-09-02T00:00:00+0100	5	ICA data update; ObO demo map site
+2021-09-03T00:00:00+0100	77.5	Add access for Alison mersey green; Ensure FB links show in mgp3; Issue management; Mutual Aid spreadsheet issue #2; ObO demo map site
+2021-09-06T00:00:00+0100	1	Meeting with John
+2021-09-07T00:00:00+0100	17.5	ICA data update; ICA youth data update; Issue management
+2021-09-08T00:00:00+0100	24	Issue management; ObO correspondance
+2021-09-09T00:00:00+0100	7.5	ICA popup.js fix; Meeting with Anna Thorne; Meeting with John and Colm
+2021-09-10T00:00:00+0100	7.5	ICA popup.js fix`,
      },
     },
 ];
