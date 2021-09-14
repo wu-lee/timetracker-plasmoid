@@ -16,6 +16,7 @@ const testCases = [
      expect: {
 	 tasks: {},
 	 report: {},
+	 tsv: '',
      },
     },
     
@@ -24,6 +25,7 @@ const testCases = [
      expect: {
 	 tasks: {},
 	 report: {},
+	 tsv: '',
      },
     },
 
@@ -72,6 +74,7 @@ const testCases = [
      expect: {
 	 tasks: {'ICA data update': 1442 },
 	 report: { '2021-09-01T00:00:00+0100': { 'ICA data update': 1442 } },
+	 tsv: '',
      },
     },
 
@@ -277,7 +280,7 @@ const testCases = [
 1	switch	2021-09-08T10:07:55+0100	2021-09-08T10:08:02+0100	Issue management
 1	start	2021-09-08T10:08:02+0100	2021-09-08T10:08:02+0100	
 1	stop	2021-09-08T10:08:02+0100	2021-09-08T10:08:06+0100	
-1	switch	2021-09-08T09:23:05+0100	2021-09-09T09:52:03+0100	ICA popup.js fix
+1	switch	2021-09-08T10:08:06+0100	2021-09-09T09:52:03+0100	ICA popup.js fix
 1	start	2021-09-09T09:52:03+0100	2021-09-09T09:52:03+0100	
 1	mark	2021-09-09T09:52:03+0100	2021-09-09T09:58:43+0100	
 1	mark	2021-09-09T09:58:43+0100	2021-09-09T10:08:16+0100	
@@ -304,7 +307,7 @@ const testCases = [
 1	switch	2021-09-09T13:45:40+0100	2021-09-09T15:30:40+0100	Meeting with Anna Thorne
 1	start	2021-09-09T15:30:40+0100	2021-09-09T15:30:40+0100	
 1	stop	2021-09-09T15:30:40+0100	2021-09-09T16:10:31+0100	
-1	switch	2021-09-09T16:46:31+0100	2021-09-09T16:49:51+0100	ICA popup.js fix
+1	switch	2021-09-09T16:10:31+0100	2021-09-09T16:49:51+0100	ICA popup.js fix
 1	start	2021-09-09T16:49:51+0100	2021-09-09T16:49:51+0100	
 1	mark	2021-09-09T16:49:51+0100	2021-09-09T16:52:23+0100	
 1	mark	2021-09-09T16:52:23+0100	2021-09-09T17:02:26+0100	
@@ -416,7 +419,8 @@ const testCases = [
 	     '2021-09-10T00:00:00+0100': {
 		 'ICA popup.js fix': '07:20:52'
 	     },
-	 }
+	 },
+	 tsv: '',
      },
     },
 ];
@@ -430,10 +434,19 @@ testCases.forEach((c) => {
         console.log(c.name,": passed");
 })
 
-// Test report parsing
+// Test JSON report parsing
 testCases.forEach((c) => {
     const output = Parser.parseTasks(c.log, Parser.mkReportAccumulator())
     if (JSON.stringify(output) !== JSON.stringify(c.expect.report))
+        console.log(c.name,": failed", output);
+    else
+        console.log(c.name,": passed");
+})
+
+// Test TSV report parsing
+testCases.forEach((c) => {
+    const output = Parser.parseTasks(c.log, Parser.mkTsvReportAccumulator())
+    if (JSON.stringify(output) !== JSON.stringify(c.expect.tsv))
         console.log(c.name,": failed", output);
     else
         console.log(c.name,": passed");
