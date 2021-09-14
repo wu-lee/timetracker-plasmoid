@@ -23,6 +23,12 @@ export function durationSec(seconds) {
     return sign + pad(Math.floor(seconds) % 60);
 }
 
+export function durationHourDecimal(seconds) {
+    const sign = seconds >= 0? '' : '-';
+    seconds = Math.abs(seconds);
+    return sign + (seconds / 3600).toFixed(1) +'h';
+}
+    
 export function duration(seconds) {
     const sign = seconds >= 0? '' : '-';
     seconds = Math.abs(seconds);
@@ -63,6 +69,7 @@ export default {
     durationSec,
     durationHour,
     durationMin,
+    durationHourDecimal,
     duration,
     pad,
 };
