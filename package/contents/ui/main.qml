@@ -195,14 +195,14 @@ Item {
 
     // refreshes all the UI info when a new list of tasks is set
     function updateTasks(tasks) {
-	tasksModel.clear();
+        tasksModel.clear();
         Object.entries(tasks).map(task => tasksModel.append({
             name: task[0],
             duration: task[1]
         }));
-	// update taskSeconds
-	var task = selectedTask();
-	taskSeconds = task? task.duration : 0;
+        // update taskSeconds
+        var task = selectedTask();
+        taskSeconds = task? task.duration : 0;
     }
 
     
@@ -284,7 +284,7 @@ Item {
             connectSource('mkdir -p $(dirname '+taskLogQuoted+') && '+
                           'printf "'+Parser.schemaVersion.toString(16)+
                           '\\tinit\\t\\t'+logPrevTime+'\\t'+sq(widgetVersion)+
-			  '\\n" >>'+taskLogQuoted+' && '+
+                          '\\n" >>'+taskLogQuoted+' && '+
                           'cat '+taskLogQuoted);
         }
 
@@ -331,7 +331,7 @@ Item {
                 case 'logTask':
                 case 'loadTasks':
                     var tasks = Parser.parseTasks(stdout, Parser.mkTaskListAccumulator());
-		    updateTasks(tasks);		    
+		            updateTasks(tasks);		    
                     break
                 case 'pollIdle':
                     // Clock should be running, if it isn't just bail
