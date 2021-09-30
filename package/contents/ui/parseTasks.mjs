@@ -180,7 +180,9 @@ export function parseTasks(eventList, accumulator) {
             }
         }
         function switchTask(taskEntry) {
-            currentTask = taskEntry.param
+            currentTask = taskEntry.param;
+	    var switchTime = new Date(taskEntry.time);
+	    accumulator.add(currentTask, switchTime, switchTime); // initialise an entry to 0
         }
         function initTask(taskEntry) {
             // If we were working, discard state and start afresh
