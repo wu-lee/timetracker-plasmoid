@@ -11,11 +11,39 @@ function roundValues(map) {
     }
 }
 
-export function mkTaskListAccumulator() {
+function mkRegexFilter(regexps) {
+    return function(task, startTime, stopTime) {
+	for(const regexp of regexps) {
+	    if (task.match(regexp)) {
+		return true;
+	    }
+	}
+	return false;
+    };
+}
+
+
+function mkFilter(args) {
+    switch(typeof args){
+    case 'function': return args;
+    case 'string': return mkRegexFilter([args]);
+    case 'object': return mkRegexFilter(args);
+    case 'undefined': return args;
+    default: throw new Error(`don't know how to handle mkFilter parameter of type '${typeof args}' (${args})`);
+    }
+}
+
+export function mkTaskListAccumulator(filter) {
     var index = {};
 
+    filter = mkFilter(filter);
+    
     return {
         add: (task, startTime, stopTime) => {
+	    // Skip tasks which don't pass the filter - if one is supplied
+	    if (filter && !filter(task, startTime, stopTime))
+		return;
+	    
             var milliseconds = stopTime.getTime() - startTime.getTime()
             
             if (!index[task])
@@ -29,11 +57,17 @@ export function mkTaskListAccumulator() {
     };
 }
 
-export function mkReportAccumulator() {
+export function mkReportAccumulator(filter) {
     var index = {};
 
+    filter = mkFilter(filter);
+    
     return {
         add: (task, startTime, stopTime) => {
+	    // Skip tasks which don't pass the filter - if one is supplied
+	    if (filter && !filter(task, startTime, stopTime))
+		return;
+	    
             var milliseconds = stopTime.getTime() - startTime.getTime();
 	    startTime.setHours(0,0,0,0);
             var date = DateFormat.isoLocalTime(startTime);
