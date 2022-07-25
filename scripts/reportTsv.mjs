@@ -1,10 +1,17 @@
-// -*- javascript -*-
+#!/bin/env node 
 import { parseTasks, mkReportAccumulator } from '../package/contents/ui/parseTasks.mjs';
 import { durationHourDecimal } from '../package/contents/ui/dateFormat.mjs';
 import fs from 'fs';
+import process from 'process';
+
+var regexps;
+if (process.argv.length > 2) {
+    regexps = process.argv.slice(2);
+}
+
 
 function mkTsvReportAccumulator() {
-    var reportAccumulator = mkReportAccumulator();
+    var reportAccumulator = mkReportAccumulator(regexps);
 
     function escape(str) {
 	return str
