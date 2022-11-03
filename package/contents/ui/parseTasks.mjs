@@ -85,22 +85,46 @@ export function mkReportAccumulator(filter) {
 	    function byDescendingDurationThenName(a, b) {
 		return b[1] - a[1] || (a[0] > b[0]) - (a[0] < b[0]);
 	    }
-	    var report = {}
+	    function formatTasks(tasks) {
+		var taskEntries = Object.entries(tasks)
+		      .filter(e => e[1] !== 0) // remove empty tasks
+		      .sort(byDescendingDurationThenName)
+		      .map(e => [e[0], DateFormat.duration(e[1])]); // format durations
+		return Object.fromEntries(taskEntries);
+	    }
+	    function totalTasks(tasks) {
+		return Object.values(tasks).reduce((a, v) => a+v, 0); // total durations
+	    }
+	    var reportDates = {};
+	    var reportTotals = {};
 	    for(var date in index) {
 		var tasks = index[date];
-		var total = Object.values(tasks).reduce((a, v) => a+v, 0); // total durations
-		var reportTasks = Object.entries(tasks)
-		    .filter(e => e[1] !== 0) // remove empty tasks
-		    .sort(byDescendingDurationThenName)
-		    .map(e => [e[0], DateFormat.duration(e[1])]); // format durations
-
-		if (reportTasks.length === 0)
+		var total = totalTasks(tasks);
+		var reportTasks = formatTasks(tasks);
+		if (total === 0)
 		    continue; // Don't add empty days
 
-		reportTasks = Object.fromEntries(reportTasks);
 		reportTasks['total'] = DateFormat.duration(total);
-		report[date] = reportTasks;
+		reportDates[date] = reportTasks;
+
+		// Accumulate all the task durations in reportTotals
+		Object.entries(tasks).forEach(e => {
+		    var task = e[0];
+		    var durationSecs = e[1];
+		    if (task in reportTotals)
+			reportTotals[task] += durationSecs;
+		    else
+			reportTotals[task] = durationSecs;
+		});
 	    }
+	    var report = {
+		dates: reportDates,
+		totals: reportTotals,
+	    };
+	    var grandTotal = totalTasks(report.totals);
+	    report.totals = formatTasks(report.totals);
+	    report.totals.total = DateFormat.duration(grandTotal);
+	    
 	    return report;
 	}
     };
