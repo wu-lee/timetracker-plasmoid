@@ -133,6 +133,7 @@ export function mkReportAccumulator(filter) {
 export function parseTasks(eventList, accumulator) {
     var prevTime
     var currentTask // the name of the current task, if set
+    var working = false // the started state of the current task
     
     eventList.split('\n').map(parseLine).forEach(aggregate)
     
@@ -183,6 +184,8 @@ export function parseTasks(eventList, accumulator) {
                      'probably corrupt! ('+ prevTime +' vs '+ taskEntry.prevTime +')')
             }
         }
+
+        // Check the continuity of time fields
         switch(taskEntry.action) {
             case 'stop':
             case 'mark':
@@ -201,31 +204,97 @@ export function parseTasks(eventList, accumulator) {
         // Manage the working state...
         //console.debug(taskEntry.action, taskEntry.param)
         switch(taskEntry.action) {
-            case 'start':
-                if (!currentTask)
-                    warn('unexpected start entry - no current task set')
-                break
+        case 'start':
+            // May start working state. Does not change task. May add time.
+            // console.log(`start: ${currentTask} -> ${taskEntry.param} @ ${taskEntry.time}`); // DEBUG
+            
+            if (working) {
+                if (currentTask) {
+                    warn(`unexpected start action - working on task ${currentTask}, simply adding entry`);
+                    addTaskTime(taskEntry);
+                }
+                else {
+                    working = false;
+                    warn('unexpected start action - working, but no no current task, stopping');
+                }
+            }
+            else { // Not working
+                if (currentTask)
+                    working = true;
+                else
+                    warn('unexpected start action - not working and no current task, ignoring');
+            }
+            break
+            
+        case 'stop':
+            // May stop working state. Does not change task. May add time.
+            // console.log(`stop: ${currentTask} -> ${taskEntry.param} @ ${taskEntry.time}`); // DEBUG
+            
+            if (working) {
+                if (currentTask) {
+                    working = false;
+                    addTaskTime(taskEntry);
+                }
+                else {
+                    working = false;
+                    warn('unexpected stop action - working but no current task set, stopping');
+                }
+            }
+            else { // Not working
+                if (currentTask) {
+                    warn(`unexpected stop action - not working on ${currentTask}, ignoring`);
+                }
+                else {
+                    warn('unexpected stop action - not working, and no current task set, ignoring');
+                }
+            }
+            break
 
-            case 'stop':
-            case 'mark':
-                if (currentTask === undefined)
-                    // We are not working!?
-                    warn('stop/mark action without a current task set')
-                addTaskTime(taskEntry);
-                break
-                
-            case 'switch':
-                //switch task has no task-related duration, so don't addTaskTime
-                switchTask(taskEntry);
-                break
+        case 'mark':
+            // Does not change working state or task, may add time
+            // console.log(`mark: ${currentTask} -> ${taskEntry.param} @ ${taskEntry.time}`); // DEBUG
+            
+            if (working) {
+                if (currentTask) {
+                    addTaskTime(taskEntry);
+                }
+                else {
+                    warn('unexpected mark action - working, but no current task set, ignoring');
+                }
+            }
+            else { // Not working
+                if (currentTask) {
+                    warn(`unexpected mark action - not working on ${currentTask}, ignoring`);
+                }
+                else {
+                    warn('unexpected mark action - not working and no current task set, ignoring');
+                }
 
-            case 'init':
-                initTask(taskEntry)
-                break
+            }
+            break
                 
-            default:
-                warn('unknown action "'+taskEntry.action+'"')
-                break
+        case 'switch':
+            // Always changes task, never changes working state
+            // console.log(`switch: ${currentTask} -> ${taskEntry.param} @ ${taskEntry.time}`); // DEBUG
+
+            if (working && currentTask) {
+                addTaskTime(taskEntry); // Add time before switching, belongs to previous task
+            }
+
+            // Switch whatever the working state
+            currentTask = taskEntry.param;
+            
+            break
+            
+        case 'init':
+            // Changes neither task or working state, nor adds time
+            // console.log(`init: ${currentTask} -> ${taskEntry.param} @ ${taskEntry.time}`); // DEBUG
+            initTask(taskEntry)
+            break
+                
+        default:
+            warn('unknown action "'+taskEntry.action+'"')
+            break
         }        
 
         return;
@@ -236,23 +305,15 @@ export function parseTasks(eventList, accumulator) {
                          "at", taskEntry.time);
         }
         function addTaskTime(taskEntry) {
-            // console.log(`${currentTask} += ${taskEntry.param} @ ${taskEntry.time}`); // DEBUG
-            if (currentTask !== undefined) {
-                // We are working
-
-                // Add on current task duration
-                var lastTaskTime = new Date(taskEntry.prevTime)
-                var taskTime = new Date(taskEntry.time)
-                var milliseconds = taskTime.getTime() - lastTaskTime.getTime()
-                // console.log(`   += ${milliseconds/1000}s`); // DEBUG
-                accumulator.add(currentTask, lastTaskTime, taskTime);
-            }
-        }
-        function switchTask(taskEntry) {
-            // console.log(`${currentTask} -> ${taskEntry.param} @ ${taskEntry.time}`); // DEBUG
-            currentTask = taskEntry.param;
-	    var switchTime = new Date(taskEntry.time);
-	    accumulator.add(currentTask, switchTime, switchTime); // initialise an entry to 0
+            if (!currentTask)
+                throw new Error(`${taskEntry.param}@${taskEntry.time}: can't call addTaskTime as there is no currentTask`);
+            
+            // Add on current task duration
+            var lastTaskTime = new Date(taskEntry.prevTime)
+            var taskTime = new Date(taskEntry.time)
+            var milliseconds = taskTime.getTime() - lastTaskTime.getTime()
+            // console.log(`   ${currentTask} += ${milliseconds/1000}s`); // DEBUG
+            accumulator.add(currentTask, lastTaskTime, taskTime);
         }
         function initTask(taskEntry) {
             // If we were working, discard state and start afresh
