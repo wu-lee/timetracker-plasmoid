@@ -210,7 +210,7 @@ export function parseTasks(eventList, accumulator) {
             case 'mark':
                 if (currentTask === undefined)
                     // We are not working!?
-                    warn('stop/mask action without a current task set')
+                    warn('stop/mark action without a current task set')
                 addTaskTime(taskEntry);
                 break
                 
