@@ -12,7 +12,7 @@ function roundValues(map) {
 }
 
 function mkRegexFilter(regexps) {
-    return function(task, startTime, stopTime) {
+    return function(task, lastTaskTime, taskTime) {
 	for(const regexp of regexps) {
 	    if (task.match(regexp)) {
 		return true;
@@ -39,12 +39,12 @@ export function mkTaskListAccumulator(filter) {
     filter = mkFilter(filter);
     
     return {
-        add: (task, startTime, stopTime) => {
+        add: (task, lastTaskTime, taskTime) => {
 	    // Skip tasks which don't pass the filter - if one is supplied
-	    if (filter && !filter(task, startTime, stopTime))
+	    if (filter && !filter(task, lastTaskTime, taskTime))
 		return;
 	    
-            var milliseconds = stopTime.getTime() - startTime.getTime()
+            var milliseconds = taskTime.getTime() - lastTaskTime.getTime()
             
             if (!index[task])
                 index[task] = 0
@@ -63,14 +63,14 @@ export function mkReportAccumulator(filter) {
     filter = mkFilter(filter);
     
     return {
-        add: (task, startTime, stopTime) => {
+        add: (task, lastTaskTime, taskTime) => {
 	    // Skip tasks which don't pass the filter - if one is supplied
-	    if (filter && !filter(task, startTime, stopTime))
+	    if (filter && !filter(task, lastTaskTime, taskTime))
 		return;
 	    
-            var milliseconds = stopTime.getTime() - startTime.getTime();
-	    startTime.setHours(0,0,0,0);
-            var date = DateFormat.isoLocalTime(startTime);
+            var milliseconds = taskTime.getTime() - lastTaskTime.getTime();
+	    lastTaskTime.setHours(0,0,0,0);
+            var date = DateFormat.isoLocalTime(lastTaskTime);
             
             if (!index[date])
                 index[date] = {}
@@ -240,11 +240,11 @@ export function parseTasks(eventList, accumulator) {
                 // We are working
 
                 // Add on current task duration
-                var startTime = new Date(taskEntry.prevTime)
-                var stopTime = new Date(taskEntry.time)
-                var milliseconds = stopTime.getTime() - startTime.getTime()
+                var lastTaskTime = new Date(taskEntry.prevTime)
+                var taskTime = new Date(taskEntry.time)
+                var milliseconds = taskTime.getTime() - lastTaskTime.getTime()
 
-                accumulator.add(currentTask, startTime, stopTime);
+                accumulator.add(currentTask, lastTaskTime, taskTime);
             }
         }
         function switchTask(taskEntry) {

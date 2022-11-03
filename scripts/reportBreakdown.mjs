@@ -7,12 +7,12 @@ function mkAccumulator() {
     const log = [];
     const tots = {};
     return {
-	add: (task, start, stop) => {
-            const seconds = (stop.getTime() - start.getTime())/1000;
+	add: (task, last, time) => {
+            const seconds = (time.getTime() - last.getTime())/1000;
 	    if (!tots[task])
 		tots[task]= 0
 	    tots[task] += seconds;
-            const localtime = isoLocalTime(start);
+            const localtime = isoLocalTime(last);
 	    log.push(`${localtime}\t${duration(seconds)}\t${duration(tots[task])}\t${task}`);
 	},
 	result: () => {
