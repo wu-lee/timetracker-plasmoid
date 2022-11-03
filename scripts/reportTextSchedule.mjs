@@ -38,9 +38,9 @@ function mkAccumulator() {
 		while(index.length > 0) {
 		    const last = index.pop();
 		    if (task !== last.task)
-			throw "invalid timeline, negative task follows a different task";
+			throw new Error("invalid timeline, negative task follows a different task");
 		    if (last.stop < start)
-			throw "invalid timeline, negative task with gap after previous task";
+			throw new Error("invalid timeline, negative task with gap after previous task");
 		    if (stop < last.start)
 			continue; // just drop this task
 		    if (stop < last.end) {
