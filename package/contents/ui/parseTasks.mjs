@@ -236,6 +236,7 @@ export function parseTasks(eventList, accumulator) {
                          "at", taskEntry.time);
         }
         function addTaskTime(taskEntry) {
+            // console.log(`${currentTask} += ${taskEntry.param} @ ${taskEntry.time}`); // DEBUG
             if (currentTask !== undefined) {
                 // We are working
 
@@ -243,11 +244,12 @@ export function parseTasks(eventList, accumulator) {
                 var lastTaskTime = new Date(taskEntry.prevTime)
                 var taskTime = new Date(taskEntry.time)
                 var milliseconds = taskTime.getTime() - lastTaskTime.getTime()
-
+                // console.log(`   += ${milliseconds/1000}s`); // DEBUG
                 accumulator.add(currentTask, lastTaskTime, taskTime);
             }
         }
         function switchTask(taskEntry) {
+            // console.log(`${currentTask} -> ${taskEntry.param} @ ${taskEntry.time}`); // DEBUG
             currentTask = taskEntry.param;
 	    var switchTime = new Date(taskEntry.time);
 	    accumulator.add(currentTask, switchTime, switchTime); // initialise an entry to 0
