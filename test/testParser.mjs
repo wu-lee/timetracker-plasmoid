@@ -15,7 +15,7 @@ const testCases = [
      log: '',
      expect: {
 	 tasks: {},
-	 report: {},
+	 report: { dates: {}, totals: { total: '00:00:00' }},
      },
     },
     
@@ -23,7 +23,7 @@ const testCases = [
      log: '1\tinit\t\t100\t',
      expect: {
 	 tasks: {},
-	 report: {},
+	 report: { dates: {}, totals: { total: '00:00:00' }},
      },
     },
 
@@ -72,16 +72,23 @@ const testCases = [
      expect: {
 	 tasks: {'ICA data update': 1442 },
 	 report: {
-	     '2021-09-01T00:00:00+0100': {
+	     dates: {
+		 '2021-09-01T00:00:00+0100': {
+		     'ICA data update': '00:24:02',
+		     'total': '00:24:02'
+		 }
+	     },
+	     totals: {
 		 'ICA data update': '00:24:02',
 		 'total': '00:24:02'
-	     }
+	     },
 	 },
      },
     },
-
-    {name: 'real case 3',
-     log: `1	switch	2021-09-01T17:59:18.863Z	2021-09-01T19:43:57.960Z	ICA data update
+    
+    {
+	name: 'real case 3',
+	log: `1	switch	2021-09-01T17:59:18.863Z	2021-09-01T19:43:57.960Z	ICA data update
 1	init		2021-09-01T19:57:00.436Z
 1	init		2021-09-01T20:12:45.055Z
 1	init		2021-09-01T20:13:50.984Z
@@ -318,64 +325,75 @@ const testCases = [
 1	init		2021-09-13T15:02:28+0100	0.1.0
 1	init		2021-09-13T15:07:28+0100	0.1.0
 `,
-     expect: {
-	 tasks: {
-	     'ICA data update': 10401,
-	     'ObO demo map site': 18158,
-	     'Issue management': 10,
-	     'Add access for Alison mersey green': 1717,
-	     'Mutual Aid spreadsheet issue #2': 1717,
-	     'Ensure FB links show in mgp3': 3424,
-	     'Meeting with John': 2701,
-	     'ICA youth data update': 4016,
-	     'ObO correspondance': 1082,
-	     'ICA popup.js fix': 11206,
-	     'Meeting with John and Colm': 2163,
-	     'Meeting with Anna Thorne': 2391
-	 },
-	 report: {
-	     '2021-09-01T00:00:00+0100': {
-		 'ICA data update': '00:26:02',
-		 total: '00:26:02'
-	     },
-	     '2021-09-02T00:00:00+0100': {
-		 'ObO demo map site': '03:35:24',
-		 'ICA data update': '01:23:24',
-		 total: '04:58:49'
-	     },
-	     '2021-09-03T00:00:00+0100': {
-		 'ObO demo map site': '01:27:13',
-		 'Ensure FB links show in mgp3': '00:57:03',
-		 'Add access for Alison mersey green': '00:28:37',
-		 'Mutual Aid spreadsheet issue #2': '00:28:37',
-		 total: '03:21:31'
-	     },
-	     '2021-09-06T00:00:00+0100': {
-		 'Meeting with John': '00:45:00',
-		 total: '00:45:00'
-	     },
-	     '2021-09-07T00:00:00+0100': {
-		 'ICA youth data update': '01:06:56',
-		 'ICA data update': '01:03:55',
-		 'Issue management': '00:00:06',
-		 total: '02:10:57'
-
-	     },
-	     '2021-09-08T00:00:00+0100': {
-		 'ObO correspondance': '00:18:02',
-		 'Issue management': '00:00:04',
-		 total: '00:18:06'
-	     },
-	     '2021-09-09T00:00:00+0100': {
-		 'ICA popup.js fix': '03:06:46',
-		 'Meeting with Anna Thorne': '00:39:51',
-		 'Meeting with John and Colm': '00:36:03',
-		 total: '04:22:40'
-	     },
-	 },
-     },
+	expect: {
+	    tasks: {
+		'ICA data update': 10491,
+		'ObO demo map site': 18158,
+		'Issue management': 149,
+		'Add access for Alison mersey green': 2074,
+		'Mutual Aid spreadsheet issue #2': 1988,
+		'Ensure FB links show in mgp3': 3424,
+		'Meeting with John': 2701,
+		'ICA youth data update': 4494,
+		'ObO correspondance': 1082,
+		'ICA popup.js fix': 11206,
+		'Meeting with John and Colm': 2163,
+		'Meeting with Anna Thorne': 2391
+	    },
+	    report: {
+		dates: {
+		    '2021-09-01T00:00:00+0100': { 'ICA data update': '00:26:02', total: '00:26:02' },
+		    '2021-09-02T00:00:00+0100': {
+			'ObO demo map site': '03:35:24',
+			'ICA data update': '01:24:53',
+			total: '05:00:18'
+		    },
+		    '2021-09-03T00:00:00+0100': {
+			'ObO demo map site': '01:27:13',
+			'Ensure FB links show in mgp3': '00:57:03',
+			'Add access for Alison mersey green': '00:34:33',
+			'Mutual Aid spreadsheet issue #2': '00:33:08',
+			'Issue management': '00:02:18',
+			total: '03:34:17'
+		    },
+		    '2021-09-06T00:00:00+0100': { 'Meeting with John': '00:45:00', total: '00:45:00' },
+		    '2021-09-07T00:00:00+0100': {
+			'ICA youth data update': '01:14:54',
+			'ICA data update': '01:03:55',
+			'Issue management': '00:00:06',
+			total: '02:18:55'
+		    },
+		    '2021-09-08T00:00:00+0100': {
+			'ObO correspondance': '00:18:02',
+			'Issue management': '00:00:04',
+			total: '00:18:06'
+		    },
+		    '2021-09-09T00:00:00+0100': {
+			'ICA popup.js fix': '03:06:46',
+			'Meeting with Anna Thorne': '00:39:51',
+			'Meeting with John and Colm': '00:36:03',
+			total: '04:22:40'
+		    }
+		},
+		totals: {
+		    'ObO demo map site': '05:02:38',
+		    'ICA popup.js fix': '03:06:46',
+		    'ICA data update': '02:54:51',
+		    'ICA youth data update': '01:14:54',
+		    'Ensure FB links show in mgp3': '00:57:03',
+		    'Meeting with John': '00:45:00',
+		    'Meeting with Anna Thorne': '00:39:51',
+		    'Meeting with John and Colm': '00:36:03',
+		    'Add access for Alison mersey green': '00:34:33',
+		    'Mutual Aid spreadsheet issue #2': '00:33:08',
+		    'ObO correspondance': '00:18:02',
+		    'Issue management': '00:02:28',
+		    total: '16:45:19'
+		},
+	    },
+	},
     },
-
+	
     {
 	name: 'real case 4, trailing switch task 2',
 	log: `1	init		2021-09-29T10:15:43+0100	0.1.0
@@ -394,9 +412,14 @@ const testCases = [
 		'task 2': 0, // this should be present, if 0, so it appears in the list
 	    },
 	    report: {
-		'2021-09-29T00:00:00+0100': {
-		    'task 1': '04:30:27',
-		    total: '04:30:27',
+		dates: {
+		    '2021-09-29T00:00:00+0100': {
+			'task 1': '04:30:27',
+			total: '04:30:27',
+		    },
+		},
+		totals: {
+		    'task 1': '04:30:27', total: '04:30:27',
 		},
 	    },
 	},
