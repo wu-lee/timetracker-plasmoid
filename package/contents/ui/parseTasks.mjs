@@ -283,6 +283,9 @@ export function parseTasks(eventList, accumulator) {
 
             // Switch whatever the working state
             currentTask = taskEntry.param;
+
+            // Add zero time to the current task (so that there will be an entry created)
+            addTaskTime(Object.assign({}, taskEntry, {prevTime: taskEntry.time}));
             
             break
             
