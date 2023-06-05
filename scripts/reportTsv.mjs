@@ -1,6 +1,6 @@
 #!/bin/env node
 import { parseTasks, mkReportAccumulator } from '../package/contents/ui/parseTasks.mjs';
-import { durationHourDecimal } from '../package/contents/ui/dateFormat.mjs';
+import { durationHourDecimal, isoLocalTime } from '../package/contents/ui/dateFormat.mjs';
 import fs from 'fs';
 import process from 'process';
 
@@ -24,22 +24,35 @@ function mkTsvReportAccumulator() {
         result: () => {
             var index = reportAccumulator.index();
 
-            var rows = Object.keys(index)
-                             .sort()
-                             .map(date => {
-                                 var tasks = index[date];
-                                 var total = Object.values(tasks)
-                                                   .reduce((t, n) => t+n, 0);
-                                 var names = Object.keys(tasks)
-                                                   .sort()
-                                                   .map(name => `${name} (${durationHourDecimal(tasks[name])})`)
-                                                   .map(escape)
-                                                   .join('; ');
+            var dates = Object.keys(index)
+                              .sort();
+            var rows = [];
+            if (dates.length > 0) {
+                var date = new Date(dates[0]);
+                var end = new Date(dates[dates.length - 1]);
+                while(date < end) {
+                    var key = isoLocalTime(date);
 
-                                 return [date,
-                                         Math.round(total/(60*30))/2,
-                                         names].join('\t');
-                             });
+                    var tasks = index[key];
+                    var total = 0;
+                    var names = [];
+                    if (tasks) {
+                        total = Object.values(tasks)
+                                      .reduce((t, n) => t+n, 0);
+                        names = Object.keys(tasks)
+                                      .sort()
+                                      .map(name => `${name} (${durationHourDecimal(tasks[name])})`)
+                                      .map(escape)
+                                      .join('; ');
+                    }                        
+                    rows.push([key,
+                               Math.round(total/(60*30))/2,
+                               names].join('\t'));
+                    
+                    // Add one day
+                    date.setDate(date.getDate() + 1);
+                }
+            }
             return rows.join('\n');
         }
     };
