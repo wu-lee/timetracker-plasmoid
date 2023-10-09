@@ -624,7 +624,8 @@ Item {
                     addTask(taskInput.text)
                     taskInput.clear()
                 }
-                
+
+                /*
                 // Background box
                 Rectangle {
                     id: greenRect
@@ -632,7 +633,7 @@ Item {
                     color: "transparent"
                     width: parent.width
                     height: parent.height
-                }
+                }*/
                 
                 QtControls.TextField {
                     id: taskInput
