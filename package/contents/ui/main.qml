@@ -555,7 +555,7 @@ Item {
                     
                     delegate: MouseArea {
                         height: childrenRect.height
-                        width: parent.width
+                        width: taskList.width
                         property bool isSelected: taskIndex === index
                         property bool isActive: clockTimer.running && taskIndex === index
                         property var textColor: isSelected ? "red" : "white"
