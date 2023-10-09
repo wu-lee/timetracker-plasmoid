@@ -30,7 +30,7 @@ function mkTsvReportAccumulator() {
             if (dates.length > 0) {
                 var date = new Date(dates[0]);
                 var end = new Date(dates[dates.length - 1]);
-                while(date < end) {
+                while(date <= end) {
                     var key = isoLocalTime(date);
 
                     var tasks = index[key];
