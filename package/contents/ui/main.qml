@@ -283,7 +283,6 @@ Item {
             logPrevTime = DateFormat.isoLocalTime(new Date())
             connectSource('mkdir -p $(dirname '+taskLogQuoted+') && '+
                           'printf "'+Parser.schemaVersion.toString(16)+
-                          '\\tinit\\t\\t'+logPrevTime+'\\t'+sq(widgetVersion)+
                           '\\n" >>'+taskLogQuoted+' && '+
                           'cat '+taskLogQuoted);
         }
