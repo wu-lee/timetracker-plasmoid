@@ -639,7 +639,6 @@ Item {
                     id: taskInput
                     font.pixelSize: 24
                     width: parent.width
-                    color: "white"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.margins: 5
