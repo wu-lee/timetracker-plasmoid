@@ -324,7 +324,7 @@ Item {
 
     Connections {
         target: executable
-        onExited: {
+        function onExited(cmdId, exitCode, exitStatus, stdout, stderr) {
             if (exitCode == 0) {
                 switch(cmdId) {
                 case 'initTasks':
