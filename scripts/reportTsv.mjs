@@ -2,13 +2,19 @@
 import { parseTasks, mkReportAccumulator } from '../package/contents/ui/parseTasks.mjs';
 import { durationHourDecimal, isoLocalTime } from '../package/contents/ui/dateFormat.mjs';
 import fs from 'fs';
+import path from 'path';
 import process from 'process';
 
 var regexps;
+var file = '.tasks.log';
+var home_dir = process.env['HOME'];
+var tasks_path = path.join(home_dir, file);
 if (process.argv.length > 2) {
-    regexps = process.argv.slice(2);
+    regexps = process.argv[2];
 }
-
+if (process.argv.length > 3) {
+    tasks_path = process.argv[3];
+}
 
 function mkTsvReportAccumulator() {
     var reportAccumulator = mkReportAccumulator(regexps);
@@ -59,7 +65,7 @@ function mkTsvReportAccumulator() {
 }
 
 
-const data = fs.readFileSync('/home/nick/tasks.log').toString();
+const data = fs.readFileSync(tasks_path).toString();
 const output = parseTasks(data, mkTsvReportAccumulator());
 
 console.log(output);
