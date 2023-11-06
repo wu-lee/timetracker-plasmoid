@@ -23,7 +23,7 @@ Item {
     property var taskIndex: undefined
     property var logPrevTime: undefined
     property var timeText: DateFormat.duration(taskSeconds)
-    property var taskLog: "~/tasks.log"
+    property var taskLog: "~/.tasks.log"
 
     // Initial size of the window in gridUnits
     width: units.gridUnit * 28
